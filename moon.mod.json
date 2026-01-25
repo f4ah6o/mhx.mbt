@@ -1,5 +1,5 @@
 {
-  "name": "mizchi/lib",
+  "name": "mizchi/mhx",
   "version": "0.1.0",
   "deps": {
     "moonbitlang/async": "0.16.2"
@@ -9,6 +9,6 @@
   "readme": "README.mbt.md",
   "repository": "",
   "license": "Apache-2.0",
-  "keywords": [],
-  "description": ""
+  "keywords": ["htmx", "hypermedia", "hda", "wasm"],
+  "description": "MoonBit Hypermedia X - A type-safe HDA library for MoonBit/Wasm"
 }

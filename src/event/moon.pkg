@@ -1,0 +1,5 @@
+import {
+  "mizchi/mhx/ffi" as @ffi,
+  "mizchi/mhx/trigger" as @trigger,
+  "mizchi/mhx/parser" as @parser,
+}

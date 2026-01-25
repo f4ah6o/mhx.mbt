@@ -11,8 +11,14 @@ pub struct Mhx {
   request_manager : @network.RequestManager
   /// Configuration cache
   cache : @event.ConfigCache
+  /// Timing manager for delay/throttle/debounce
+  timing : @event.TimingManager
   /// Whether mhx has been initialized
   mut initialized : Bool
+  /// MutationObserver for auto-processing new elements
+  mut observer : @ffi.MutationObserver?
+  /// Callback ID for mutation observer
+  mut observer_callback_id : Int
 }
 
 ///|
@@ -24,7 +30,10 @@ pub fn Mhx::new() -> Mhx {
     delegator,
     request_manager: @network.RequestManager::new(),
     cache: @event.ConfigCache::new(),
+    timing: @event.TimingManager::new(),
     initialized: false,
+    observer: None,
+    observer_callback_id: 0,
   }
 }
 
@@ -42,6 +51,8 @@ pub fn Mhx::init_mhx(self : Mhx) -> Unit {
   self.process_tree(body)
   // Set delegation as active
   self.delegator.set_active(true)
+  // Set up MutationObserver to auto-process new elements
+  self.setup_mutation_observer(body)
 }
 
 ///|
@@ -72,9 +83,7 @@ pub fn Mhx::process_element(self : Mhx, element : @ffi.Element) -> Unit {
     return
   }
   // Parse configuration
-  let config : @event.ElementConfig = try {
-    @event.parse_element_config(element)
-  } catch {
+  let config : @event.ElementConfig = @event.parse_element_config(element) catch {
     _ => {
       // Log error and skip this element
       @ffi.console_error("mhx: Failed to parse element configuration")
@@ -83,6 +92,128 @@ pub fn Mhx::process_element(self : Mhx, element : @ffi.Element) -> Unit {
   }
   // Store configuration
   self.cache.set(element_id, config)
+}
+
+///|
+/// Set up MutationObserver to automatically process new elements
+fn Mhx::setup_mutation_observer(self : Mhx, root : @ffi.Element) -> Unit {
+  // Register callback for mutation events
+  let callback_id = register_mutation_callback()
+  self.observer_callback_id = callback_id
+  // Create the observer
+  let observer = @ffi.MutationObserver::new_ffi(callback_id)
+  // Observe the root for child additions with subtree
+  // observe(target, subtree, child_list, attributes)
+  observer.observe(root, true, true, true)
+  self.observer = Some(observer)
+}
+
+///|
+/// Disconnect the MutationObserver
+pub fn Mhx::disconnect_observer(self : Mhx) -> Unit {
+  match self.observer {
+    Some(obs) => {
+      obs.disconnect()
+      self.observer = None
+      if self.observer_callback_id > 0 {
+        unregister_mutation_callback(self.observer_callback_id)
+        self.observer_callback_id = 0
+      }
+    }
+    None => ()
+  }
+}
+
+///|
+/// Internal mutation callback registry
+priv struct MutationCallbackRegistry {
+  mut next_id : Int
+  callbacks : Map[Int, () -> Unit]
+}
+
+///|
+let mutation_registry : MutationCallbackRegistry = { next_id: 1, callbacks: {} }
+
+///|
+/// Register a mutation callback and return its ID
+fn register_mutation_callback() -> Int {
+  let id = mutation_registry.next_id
+  mutation_registry.next_id += 1
+  // Store a callback that will process mutations via the global instance
+  mutation_registry.callbacks[id] = fn() { process_pending_mutations(id) }
+  id
+}
+
+///|
+/// Unregister a mutation callback
+fn unregister_mutation_callback(id : Int) -> Unit {
+  mutation_registry.callbacks.remove(id)
+}
+
+///|
+/// Called from JS when mutations are observed
+pub fn on_mutation_observed(callback_id : Int) -> Unit {
+  match mutation_registry.callbacks.get(callback_id) {
+    Some(cb) => cb()
+    None => ()
+  }
+}
+
+///|
+/// Process pending mutations from the observer
+fn process_pending_mutations(callback_id : Int) -> Unit {
+  let mhx = global_mhx
+  match mhx.observer {
+    Some(observer) => {
+      // Only process if this is our callback
+      if mhx.observer_callback_id != callback_id {
+        return
+      }
+      let count = observer.records_count()
+      for i = 0; i < count; i = i + 1 {
+        let record = observer.record_at(i)
+        process_mutation_record(mhx, record)
+      }
+      observer.clear_records()
+    }
+    None => ()
+  }
+}
+
+///|
+/// Process a single mutation record
+fn process_mutation_record(mhx : Mhx, record : @ffi.MutationRecord) -> Unit {
+  let mutation_type = record.type_()
+  match mutation_type {
+    "childList" => {
+      // Process added nodes
+      let added_count = record.added_nodes_count()
+      for i = 0; i < added_count; i = i + 1 {
+        let node = record.added_node_at(i)
+        if node.is_element() {
+          let element = node.as_element()
+          mhx.process_tree(element)
+        }
+      }
+    }
+    "attributes" =>
+      // An attribute was modified - reprocess if it's an mx-* attribute
+      if record.has_attribute_name() {
+        let attr_name = record.attribute_name()
+        if attr_name.has_prefix("mx-") {
+          let target_node = record.target()
+          if target_node.is_element() {
+            let element = target_node.as_element()
+            // Invalidate cache and reprocess
+            let element_hash = hash_element(element)
+            let element_id = mhx.cache.get_element_id(element_hash)
+            mhx.cache.remove(element_id)
+            mhx.process_element(element)
+          }
+        }
+      }
+    _ => ()
+  }
 }
 
 ///|
@@ -104,7 +235,7 @@ fn hash_element(element : @ffi.Element) -> Int {
 pub fn Mhx::handle_event(
   self : Mhx,
   event : @ffi.Event,
-  target : @ffi.Element
+  target : @ffi.Element,
 ) -> Unit {
   if not(self.delegator.is_active()) {
     return
@@ -122,9 +253,9 @@ pub fn Mhx::handle_event(
         Some(c) => Some(c)
         None => {
           // Parse and cache on first access
-          let parsed : @event.ElementConfig? = try {
-            Some(@event.parse_element_config(current))
-          } catch {
+          let parsed : @event.ElementConfig? = Some(
+            @event.parse_element_config(current),
+          ) catch {
             _ =>
               // Skip invalid elements
               None
@@ -139,14 +270,26 @@ pub fn Mhx::handle_event(
         }
       }
       match config {
-        Some(cfg) => {
+        Some(cfg) =>
           // Check if any trigger matches this event
-          for trigger in cfg.triggers {
+          for trigger_index, trigger in cfg.triggers {
             if @event.trigger_matches_event(trigger, event_type) {
               // Check filter conditions
               if @event.check_filter_conditions(trigger, event) {
-                // Execute the action
-                self.execute_action(current, cfg, trigger, event)
+                // Get timing state for this element/trigger combination
+                let timing_state = self.timing.get_state(
+                  element_id, trigger_index,
+                )
+                // Apply timing modifiers (delay, throttle, debounce)
+                let execute_now = @event.apply_timing_modifiers(
+                  timing_state,
+                  trigger,
+                  fn() { self.execute_action(current, cfg, trigger, event) },
+                )
+                if execute_now {
+                  // Execute immediately if no timing modifiers
+                  self.execute_action(current, cfg, trigger, event)
+                }
                 // Handle once modifier
                 if trigger.is_once() {
                   // Remove from cache to prevent re-triggering
@@ -160,7 +303,6 @@ pub fn Mhx::handle_event(
               }
             }
           }
-        }
         None => ()
       }
     }
@@ -183,7 +325,7 @@ fn Mhx::execute_action(
   element : @ffi.Element,
   config : @event.ElementConfig,
   _trigger : @trigger.TriggerDef,
-  event : @ffi.Event
+  event : @ffi.Event,
 ) -> Unit {
   // Handle prevent modifier (preventDefault)
   event.prevent_default()
@@ -200,10 +342,7 @@ fn Mhx::execute_action(
   let element_hash = hash_element(element)
   let element_id = self.cache.get_element_id(element_hash)
   let result = self.request_manager.schedule(
-    element_id,
-    url,
-    options,
-    sync_strategy,
+    element_id, url, options, sync_strategy,
   )
   match result {
     @network.ScheduleResult::Execute(task) => {
@@ -212,14 +351,12 @@ fn Mhx::execute_action(
       // Execute the request
       self.execute_request(element, task, config)
     }
-    @network.ScheduleResult::Queued => {
+    @network.ScheduleResult::Queued =>
       // Request is queued, will be executed later
       ()
-    }
-    @network.ScheduleResult::Dropped => {
+    @network.ScheduleResult::Dropped =>
       // Request was dropped due to sync strategy
       ()
-    }
   }
 }
 
@@ -227,7 +364,7 @@ fn Mhx::execute_action(
 /// Build request options from element configuration
 fn build_request_options(
   element : @ffi.Element,
-  config : @event.ElementConfig
+  config : @event.ElementConfig,
 ) -> @network.RequestOptions {
   let http_method_str = match config.http_method {
     @event.HttpMethod::Get => "GET"
@@ -238,34 +375,31 @@ fn build_request_options(
   }
   let mut options : @network.RequestOptions = {
     http_method: http_method_str,
-    headers: {
-      "HX-Request": "true",
-    },
+    headers: { "HX-Request": "true" },
     body: Option::None,
     signal: Option::None,
   }
   // For POST/PUT/PATCH, collect form data
   match config.http_method {
-    @event.HttpMethod::Post | @event.HttpMethod::Put | @event.HttpMethod::Patch => {
+    @event.HttpMethod::Post
+    | @event.HttpMethod::Put
+    | @event.HttpMethod::Patch => {
       // Check if element is a form or find closest form
       let tag = element.tag_name()
       let body_data = if tag == "FORM" {
         collect_form_data(element)
       } else if element.closest_exists("form") {
         collect_form_data(element.closest_ffi("form"))
-      } else {
         // Check for mx-vals attribute
-        if element.has_attribute("mx-vals") {
-          element.get_attribute("mx-vals")
-        } else {
-          ""
-        }
+      } else if element.has_attribute("mx-vals") {
+        element.get_attribute("mx-vals")
+      } else {
+        ""
       }
       if not(body_data.is_empty()) {
         options = { ..options, body: Some(body_data) }
         options = options.with_header(
-          "Content-Type",
-          "application/x-www-form-urlencoded",
+          "Content-Type", "application/x-www-form-urlencoded",
         )
       }
     }
@@ -301,7 +435,7 @@ fn Mhx::execute_request(
   self : Mhx,
   element : @ffi.Element,
   task : @network.RequestTask,
-  config : @event.ElementConfig
+  config : @event.ElementConfig,
 ) -> Unit {
   // In a real implementation, this would be async
   // For now, we'll set up the structure for future async support
@@ -343,10 +477,10 @@ fn Mhx::execute_request(
 /// Resolve the swap target element
 fn resolve_swap_target(
   element : @ffi.Element,
-  config : @event.ElementConfig
+  config : @event.ElementConfig,
 ) -> @ffi.Element {
   match config.target {
-    Some(selector) => {
+    Some(selector) =>
       // Parse target selector
       if selector == "this" {
         element
@@ -372,7 +506,6 @@ fn resolve_swap_target(
           element
         }
       }
-    }
     None => element
   }
 }
@@ -381,7 +514,7 @@ fn resolve_swap_target(
 /// Get swap options from element attributes
 fn get_swap_options(
   element : @ffi.Element,
-  config : @event.ElementConfig
+  config : @event.ElementConfig,
 ) -> @swap.SwapOptions {
   if element.has_attribute("mx-swap") {
     @swap.SwapOptions::parse(element.get_attribute("mx-swap"))

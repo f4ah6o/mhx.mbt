@@ -1,5 +1,5 @@
 import {
-  "mizchi/mhx" as @mhx,
+  "f4ah6o/mhx" as @mhx,
   "moonbitlang/async",
 }
 

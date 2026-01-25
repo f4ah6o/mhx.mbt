@@ -1,0 +1,14 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "f4ah6o/mhx"
+
+// Values
+pub let version : String
+
+// Errors
+
+// Types and methods
+
+// Type aliases
+
+// Traits
+

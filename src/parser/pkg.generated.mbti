@@ -1,0 +1,60 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "f4ah6o/mhx/parser"
+
+import(
+  "f4ah6o/mhx/trigger"
+)
+
+// Values
+pub fn parse_trigger(String) -> Array[@trigger.TriggerDef] raise ParseError
+
+// Errors
+pub(all) suberror ParseError {
+  UnexpectedChar(pos~ : Position, expected~ : String)
+  UnexpectedEnd(pos~ : Position, expected~ : String)
+  InvalidNumber(pos~ : Position, value~ : String)
+  InvalidModifier(pos~ : Position, name~ : String)
+  InvalidSelector(pos~ : Position, value~ : String)
+}
+pub impl Eq for ParseError
+pub impl Show for ParseError
+pub impl ToJson for ParseError
+
+// Types and methods
+pub(all) struct Position {
+  offset : Int
+  char : Char
+}
+pub fn Position::at(Int, String) -> Self
+pub impl Eq for Position
+pub impl Show for Position
+pub impl ToJson for Position
+
+pub struct Scanner {
+  input : String
+  mut pos : Int
+}
+pub fn Scanner::advance(Self) -> Unit
+pub fn Scanner::check(Self, Char) -> Bool
+pub fn Scanner::current(Self) -> Char
+pub fn Scanner::expect(Self, Char) -> Unit raise ParseError
+pub fn Scanner::is_at_modifier_start(Self) -> Bool
+pub fn Scanner::is_eof(Self) -> Bool
+pub fn Scanner::make_position(Self) -> Position
+pub fn Scanner::new(String) -> Self
+pub fn Scanner::peek(Self) -> Char?
+pub fn Scanner::peek_word(Self) -> String
+pub fn Scanner::position(Self) -> Int
+pub fn Scanner::scan_bracketed(Self) -> String raise ParseError
+pub fn Scanner::scan_identifier(Self) -> String
+pub fn Scanner::scan_int(Self) -> Int raise ParseError
+pub fn Scanner::scan_selector_value(Self) -> String
+pub fn Scanner::scan_until(Self, Char) -> String
+pub fn Scanner::skip_whitespace(Self) -> Unit
+pub fn Scanner::try_consume(Self, Char) -> Bool
+pub impl Show for Scanner
+
+// Type aliases
+
+// Traits
+

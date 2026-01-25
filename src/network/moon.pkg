@@ -1,4 +1,4 @@
 import {
-  "mizchi/mhx/ffi" as @ffi,
+  "f4ah6o/mhx/ffi" as @ffi,
   "moonbitlang/async" as @async,
 }

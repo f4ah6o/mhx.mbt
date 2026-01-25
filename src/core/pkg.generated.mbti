@@ -1,0 +1,87 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "f4ah6o/mhx/core"
+
+import(
+  "f4ah6o/mhx/event"
+  "f4ah6o/mhx/ffi"
+  "f4ah6o/mhx/network"
+  "f4ah6o/mhx/parser"
+)
+
+// Values
+pub fn abort_error(String) -> MhxError
+
+pub fn config_error(String, String) -> MhxError
+
+pub fn default_error_handler(MhxError) -> Unit
+
+pub fn dom_error(String, String, String) -> MhxError
+
+pub fn from_parse_error(@parser.ParseError) -> MhxError
+
+pub fn get_instance() -> Mhx
+
+pub fn handle_event(@ffi.Event, @ffi.Element) -> Unit
+
+pub fn init_mhx() -> Unit
+
+pub fn network_error(String, String) -> MhxError
+
+pub fn on_mutation_observed(Int) -> Unit
+
+pub fn process(@ffi.Element) -> Unit
+
+pub fn report_error(MhxError) -> Unit
+
+pub fn set_error_handler((MhxError) -> Unit) -> Unit
+
+pub fn swap_error(String, String, String) -> MhxError
+
+pub fn timeout_error(String, Int) -> MhxError
+
+// Errors
+pub(all) suberror MhxError {
+  ParseError(@parser.ParseError)
+  NetworkError(url~ : String, message~ : String)
+  TimeoutError(url~ : String, timeout_ms~ : Int)
+  AbortError(url~ : String)
+  DomError(element~ : String, operation~ : String, message~ : String)
+  ConfigError(attribute~ : String, message~ : String)
+  SwapError(target~ : String, strategy~ : String, message~ : String)
+}
+pub fn MhxError::is_recoverable(Self) -> Bool
+pub fn MhxError::recovery_strategy(Self) -> RecoveryStrategy
+pub fn MhxError::should_retry(Self) -> Bool
+pub impl Show for MhxError
+
+// Types and methods
+pub(all) struct ErrorHandler {
+  on_error : (MhxError) -> Unit
+}
+
+pub struct Mhx {
+  delegator : @event.EventDelegator
+  request_manager : @network.RequestManager
+  cache : @event.ConfigCache
+  timing : @event.TimingManager
+  mut initialized : Bool
+  mut observer : @ffi.MutationObserver?
+  mut observer_callback_id : Int
+}
+pub fn Mhx::disconnect_observer(Self) -> Unit
+pub fn Mhx::handle_event(Self, @ffi.Event, @ffi.Element) -> Unit
+pub fn Mhx::init_mhx(Self) -> Unit
+pub fn Mhx::new() -> Self
+pub fn Mhx::process_element(Self, @ffi.Element) -> Unit
+pub fn Mhx::process_tree(Self, @ffi.Element) -> Unit
+
+pub(all) enum RecoveryStrategy {
+  Continue
+  Abort
+  Retry(max_attempts~ : Int, delay_ms~ : Int)
+}
+
+// Type aliases
+
+// Traits
+

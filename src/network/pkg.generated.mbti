@@ -1,0 +1,127 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "f4ah6o/mhx/network"
+
+import(
+  "f4ah6o/mhx/ffi"
+)
+
+// Values
+pub fn cancel_fetch(Int) -> Unit
+
+pub fn fetch_async(String, RequestOptions, (Response) -> Unit, (String) -> Unit) -> Int
+
+pub fn fetch_task(String, RequestOptions) -> FetchTask
+
+pub fn on_fetch_error(Int, String) -> Unit
+
+pub fn on_fetch_success(Int, String) -> Unit
+
+pub fn parse_sync_strategy(String) -> SyncStrategy
+
+// Errors
+
+// Types and methods
+pub(all) struct FetchCallback {
+  on_success : (Response) -> Unit
+}
+
+pub(all) struct FetchErrorCallback {
+  on_error : (String) -> Unit
+}
+
+pub(all) enum FetchResult {
+  Success(Response)
+  Error(String)
+  Pending
+}
+pub impl Show for FetchResult
+
+pub struct FetchTask {
+  url : String
+  options : RequestOptions
+  mut callback_id : Int
+  mut result : FetchResult
+}
+pub fn FetchTask::cancel(Self) -> Unit
+pub fn FetchTask::get_result(Self) -> FetchResult
+pub fn FetchTask::is_pending(Self) -> Bool
+pub fn FetchTask::new(String, RequestOptions) -> Self
+pub fn FetchTask::start(Self, (FetchResult) -> Unit) -> Unit
+
+pub(all) enum QueueBehavior {
+  First
+  Last
+  All
+}
+pub impl Eq for QueueBehavior
+pub impl Show for QueueBehavior
+
+pub struct RequestManager {
+  queues : Map[Int, RequestQueue]
+  mut next_id : Int
+}
+pub fn RequestManager::cancel_all(Self, Int) -> Unit
+pub fn RequestManager::clear(Self) -> Unit
+pub fn RequestManager::complete(Self, Int, Int) -> RequestTask?
+pub fn RequestManager::new() -> Self
+pub fn RequestManager::pending_count(Self, Int) -> Int
+pub fn RequestManager::schedule(Self, Int, String, RequestOptions, SyncStrategy) -> ScheduleResult
+
+pub(all) struct RequestOptions {
+  http_method : String
+  headers : Map[String, String]
+  body : String?
+  signal : @ffi.AbortSignal?
+}
+pub fn RequestOptions::default() -> Self
+pub fn RequestOptions::get() -> Self
+pub fn RequestOptions::post(String) -> Self
+pub fn RequestOptions::post_json(String) -> Self
+pub fn RequestOptions::to_json_string(Self) -> String
+pub fn RequestOptions::with_header(Self, String, String) -> Self
+pub fn RequestOptions::with_signal(Self, @ffi.AbortSignal) -> Self
+
+type RequestQueue
+
+pub(all) struct RequestTask {
+  id : Int
+  element_id : Int
+  url : String
+  options : RequestOptions
+  controller : @ffi.AbortController
+  sync_strategy : SyncStrategy
+}
+pub fn RequestTask::cancel(Self) -> Unit
+pub fn RequestTask::is_cancelled(Self) -> Bool
+pub fn RequestTask::new(Int, Int, String, RequestOptions, SyncStrategy) -> Self
+
+pub(all) struct Response {
+  raw : @ffi.JsResponse
+  body : String
+}
+pub fn Response::get_header(Self, String) -> String
+pub fn Response::new(@ffi.JsResponse, String) -> Self
+pub fn Response::ok(Self) -> Bool
+pub fn Response::redirected(Self) -> Bool
+pub fn Response::status(Self) -> Int
+pub fn Response::text(Self) -> String
+pub fn Response::url(Self) -> String
+
+pub(all) enum ScheduleResult {
+  Execute(RequestTask)
+  Queued
+  Dropped
+}
+
+pub(all) enum SyncStrategy {
+  Drop
+  Replace
+  Queue(QueueBehavior)
+}
+pub impl Eq for SyncStrategy
+pub impl Show for SyncStrategy
+
+// Type aliases
+
+// Traits
+

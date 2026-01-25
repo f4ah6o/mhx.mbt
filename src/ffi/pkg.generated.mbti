@@ -1,0 +1,221 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "f4ah6o/mhx/ffi"
+
+// Values
+pub fn console_debug(String) -> Unit
+
+pub fn console_error(String) -> Unit
+
+pub fn console_group(String) -> Unit
+
+pub fn console_group_collapsed(String) -> Unit
+
+pub fn console_group_end() -> Unit
+
+pub fn console_log(String) -> Unit
+
+pub fn console_time(String) -> Unit
+
+pub fn console_time_end(String) -> Unit
+
+pub fn console_warn(String) -> Unit
+
+pub fn document() -> Document
+
+pub fn js_fetch(String, String) -> JsPromise
+
+pub fn window() -> Window
+
+// Errors
+
+// Types and methods
+#external
+pub type AbortController
+pub fn AbortController::abort(Self) -> Unit
+pub fn AbortController::new() -> Self
+pub fn AbortController::signal(Self) -> AbortSignal
+
+#external
+pub type AbortSignal
+pub fn AbortSignal::aborted(Self) -> Bool
+
+#external
+pub type Document
+pub fn Document::active_element_ffi(Self) -> Element
+pub fn Document::add_event_listener(Self, String, (Event) -> Unit) -> Unit
+pub fn Document::body_ffi(Self) -> Element
+pub fn Document::create_element(Self, String) -> Element
+pub fn Document::document_element_ffi(Self) -> Element
+pub fn Document::element_exists(Self, String) -> Bool
+pub fn Document::get_element_by_id_ffi(Self, String) -> Element
+pub fn Document::has_active_element(Self) -> Bool
+pub fn Document::head_ffi(Self) -> Element
+pub fn Document::query_selector_all_at(Self, String, Int) -> Element
+pub fn Document::query_selector_all_count(Self, String) -> Int
+pub fn Document::query_selector_exists(Self, String) -> Bool
+pub fn Document::query_selector_ffi(Self, String) -> Element
+pub fn Document::set_title(Self, String) -> Unit
+pub fn Document::title(Self) -> String
+pub fn Document::url(Self) -> String
+
+#external
+pub type Element
+pub fn Element::add_class(Self, String) -> Unit
+pub fn Element::blur(Self) -> Unit
+pub fn Element::child_at(Self, Int) -> Self
+pub fn Element::child_count(Self) -> Int
+pub fn Element::closest_exists(Self, String) -> Bool
+pub fn Element::closest_ffi(Self, String) -> Self
+pub fn Element::focus(Self) -> Unit
+pub fn Element::get_attribute(Self, String) -> String
+pub fn Element::has_attribute(Self, String) -> Bool
+pub fn Element::has_class(Self, String) -> Bool
+pub fn Element::has_parent(Self) -> Bool
+pub fn Element::id(Self) -> String
+pub fn Element::inner_html(Self) -> String
+pub fn Element::insert_adjacent_html(Self, String, String) -> Unit
+pub fn Element::is_null(Self) -> Bool
+pub fn Element::matches(Self, String) -> Bool
+pub fn Element::outer_html(Self) -> String
+pub fn Element::parent_element_ffi(Self) -> Self
+pub fn Element::query_selector_exists(Self, String) -> Bool
+pub fn Element::query_selector_ffi(Self, String) -> Self
+pub fn Element::remove(Self) -> Unit
+pub fn Element::remove_attribute(Self, String) -> Unit
+pub fn Element::remove_class(Self, String) -> Unit
+pub fn Element::set_attribute(Self, String, String) -> Unit
+pub fn Element::set_id(Self, String) -> Unit
+pub fn Element::set_inner_html(Self, String) -> Unit
+pub fn Element::set_outer_html(Self, String) -> Unit
+pub fn Element::set_text_content(Self, String) -> Unit
+pub fn Element::set_value(Self, String) -> Unit
+pub fn Element::tag_name(Self) -> String
+pub fn Element::text_content(Self) -> String
+pub fn Element::toggle_class(Self, String) -> Bool
+pub fn Element::value(Self) -> String
+
+#external
+pub type Event
+pub fn Event::as_input_event(Self) -> InputEvent
+pub fn Event::as_keyboard_event(Self) -> KeyboardEvent
+pub fn Event::as_mouse_event(Self) -> MouseEvent
+pub fn Event::as_submit_event(Self) -> SubmitEvent
+pub fn Event::cancel_bubble(Self) -> Bool
+pub fn Event::current_target_ffi(Self) -> Element
+pub fn Event::default_prevented(Self) -> Bool
+pub fn Event::has_target(Self) -> Bool
+pub fn Event::is_trusted(Self) -> Bool
+pub fn Event::prevent_default(Self) -> Unit
+pub fn Event::stop_immediate_propagation(Self) -> Unit
+pub fn Event::stop_propagation(Self) -> Unit
+pub fn Event::target_ffi(Self) -> Element
+pub fn Event::time_stamp(Self) -> Double
+pub fn Event::type_(Self) -> String
+
+#external
+pub type InputEvent
+pub fn InputEvent::data(Self) -> String
+pub fn InputEvent::input_type(Self) -> String
+
+#external
+pub type JsFormData
+pub fn JsFormData::append(Self, String, String) -> Unit
+pub fn JsFormData::from_element(Element) -> Self
+pub fn JsFormData::get(Self, String) -> String
+pub fn JsFormData::has(Self, String) -> Bool
+pub fn JsFormData::new() -> Self
+pub fn JsFormData::to_url_encoded(Self) -> String
+
+#external
+pub type JsHeaders
+pub fn JsHeaders::get(Self, String) -> String
+pub fn JsHeaders::has(Self, String) -> Bool
+
+#external
+pub type JsPromise
+
+#external
+pub type JsResponse
+pub fn JsResponse::headers(Self) -> JsHeaders
+pub fn JsResponse::json(Self) -> JsPromise
+pub fn JsResponse::ok(Self) -> Bool
+pub fn JsResponse::redirected(Self) -> Bool
+pub fn JsResponse::status(Self) -> Int
+pub fn JsResponse::status_text(Self) -> String
+pub fn JsResponse::text(Self) -> JsPromise
+pub fn JsResponse::url(Self) -> String
+
+#external
+pub type KeyboardEvent
+pub fn KeyboardEvent::alt_key(Self) -> Bool
+pub fn KeyboardEvent::code(Self) -> String
+pub fn KeyboardEvent::ctrl_key(Self) -> Bool
+pub fn KeyboardEvent::key(Self) -> String
+pub fn KeyboardEvent::meta_key(Self) -> Bool
+pub fn KeyboardEvent::repeat(Self) -> Bool
+pub fn KeyboardEvent::shift_key(Self) -> Bool
+
+#external
+pub type MouseEvent
+pub fn MouseEvent::alt_key(Self) -> Bool
+pub fn MouseEvent::button(Self) -> Int
+pub fn MouseEvent::client_x(Self) -> Int
+pub fn MouseEvent::client_y(Self) -> Int
+pub fn MouseEvent::ctrl_key(Self) -> Bool
+pub fn MouseEvent::meta_key(Self) -> Bool
+pub fn MouseEvent::shift_key(Self) -> Bool
+
+#external
+pub type MutationObserver
+pub fn MutationObserver::clear_records(Self) -> Unit
+pub fn MutationObserver::disconnect(Self) -> Unit
+pub fn MutationObserver::new_ffi(Int) -> Self
+pub fn MutationObserver::observe(Self, Element, Bool, Bool, Bool) -> Unit
+pub fn MutationObserver::record_at(Self, Int) -> MutationRecord
+pub fn MutationObserver::records_count(Self) -> Int
+
+#external
+pub type MutationRecord
+pub fn MutationRecord::added_node_at(Self, Int) -> Node
+pub fn MutationRecord::added_nodes_count(Self) -> Int
+pub fn MutationRecord::attribute_name(Self) -> String
+pub fn MutationRecord::has_attribute_name(Self) -> Bool
+pub fn MutationRecord::has_old_value(Self) -> Bool
+pub fn MutationRecord::old_value(Self) -> String
+pub fn MutationRecord::removed_node_at(Self, Int) -> Node
+pub fn MutationRecord::removed_nodes_count(Self) -> Int
+pub fn MutationRecord::target(Self) -> Node
+pub fn MutationRecord::type_(Self) -> String
+
+#external
+pub type Node
+pub fn Node::as_element(Self) -> Element
+pub fn Node::is_element(Self) -> Bool
+pub fn Node::node_name(Self) -> String
+pub fn Node::node_type(Self) -> Int
+
+#external
+pub type SubmitEvent
+pub fn SubmitEvent::has_submitter(Self) -> Bool
+pub fn SubmitEvent::submitter_ffi(Self) -> Element
+
+#external
+pub type Window
+pub fn Window::add_event_listener(Self, String, (Event) -> Unit) -> Unit
+pub fn Window::cancel_animation_frame(Self, Int) -> Unit
+pub fn Window::clear_interval(Self, Int) -> Unit
+pub fn Window::clear_timeout(Self, Int) -> Unit
+pub fn Window::history_back(Self) -> Unit
+pub fn Window::history_forward(Self) -> Unit
+pub fn Window::history_push_state(Self, String, String) -> Unit
+pub fn Window::history_replace_state(Self, String, String) -> Unit
+pub fn Window::location_href(Self) -> String
+pub fn Window::request_animation_frame(Self, (Double) -> Unit) -> Int
+pub fn Window::set_interval(Self, () -> Unit, Int) -> Int
+pub fn Window::set_location_href(Self, String) -> Unit
+pub fn Window::set_timeout(Self, () -> Unit, Int) -> Int
+
+// Type aliases
+
+// Traits
+

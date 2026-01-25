@@ -1,0 +1,133 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "f4ah6o/mhx/event"
+
+import(
+  "f4ah6o/mhx/ffi"
+  "f4ah6o/mhx/parser"
+  "f4ah6o/mhx/trigger"
+)
+
+// Values
+pub fn apply_debounce(TimingState, Int, () -> Unit) -> Unit
+
+pub fn apply_delay(TimingState, Int, () -> Unit) -> Unit
+
+pub fn apply_throttle(TimingState, Int, () -> Unit) -> Unit
+
+pub fn apply_timing_modifiers(TimingState, @trigger.TriggerDef, () -> Unit) -> Bool
+
+pub let attr_prefix : String
+
+pub fn check_filter_conditions(@trigger.TriggerDef, @ffi.Event) -> Bool
+
+pub let default_events : Array[String]
+
+pub fn get_request_info(@ffi.Element) -> (HttpMethod, String)?
+
+pub fn has_mhx_attributes(@ffi.Element) -> Bool
+
+pub fn parse_element_config(@ffi.Element) -> ElementConfig raise @parser.ParseError
+
+pub fn parse_http_method(String) -> HttpMethod
+
+pub fn parse_swap_strategy(String) -> SwapStrategy
+
+pub fn trigger_matches_event(@trigger.TriggerDef, String) -> Bool
+
+// Errors
+
+// Types and methods
+type ConfigCache
+pub fn ConfigCache::clear(Self) -> Unit
+pub fn ConfigCache::get(Self, Int) -> ElementConfig?
+pub fn ConfigCache::get_element_id(Self, Int) -> Int
+pub fn ConfigCache::has(Self, Int) -> Bool
+pub fn ConfigCache::length(Self) -> Int
+pub fn ConfigCache::new() -> Self
+pub fn ConfigCache::remove(Self, Int) -> Unit
+pub fn ConfigCache::set(Self, Int, ElementConfig) -> Unit
+
+pub(all) struct ElementConfig {
+  triggers : Array[@trigger.TriggerDef]
+  http_method : HttpMethod
+  url : String
+  swap : SwapStrategy
+  target : String?
+  processed : Bool
+}
+pub fn ElementConfig::default() -> Self
+pub impl Show for ElementConfig
+pub impl ToJson for ElementConfig
+
+pub struct EventDelegator {
+  registered_events : Map[String, Bool]
+  handlers : Map[String, Array[EventHandler]]
+  cache : ConfigCache
+  mut active : Bool
+}
+pub fn EventDelegator::add_handler(Self, String, EventHandler) -> Unit
+pub fn EventDelegator::dispatch(Self, String, MhxEvent) -> Unit
+pub fn EventDelegator::get_cache(Self) -> ConfigCache
+pub fn EventDelegator::get_registered_events(Self) -> Array[String]
+pub fn EventDelegator::is_active(Self) -> Bool
+pub fn EventDelegator::new() -> Self
+pub fn EventDelegator::register_defaults(Self) -> Unit
+pub fn EventDelegator::register_event(Self, String) -> Unit
+pub fn EventDelegator::set_active(Self, Bool) -> Unit
+
+pub struct EventHandler {
+  handle : (MhxEvent) -> Unit
+}
+
+pub(all) enum HttpMethod {
+  Get
+  Post
+  Put
+  Patch
+  Delete
+}
+pub impl Eq for HttpMethod
+pub impl Show for HttpMethod
+pub impl ToJson for HttpMethod
+
+pub(all) struct MhxEvent {
+  event : @ffi.Event
+  matched_element : @ffi.Element
+  config : ElementConfig
+  trigger : @trigger.TriggerDef
+}
+
+pub(all) enum SwapStrategy {
+  InnerHTML
+  OuterHTML
+  BeforeBegin
+  AfterBegin
+  BeforeEnd
+  AfterEnd
+  Delete
+  None_
+}
+pub impl Eq for SwapStrategy
+pub impl Show for SwapStrategy
+pub impl ToJson for SwapStrategy
+
+pub struct TimingManager {
+  states : Map[String, TimingState]
+}
+pub fn TimingManager::get_state(Self, Int, Int) -> TimingState
+pub fn TimingManager::new() -> Self
+pub fn TimingManager::remove_element(Self, Int) -> Unit
+
+pub struct TimingState {
+  mut pending_timeout : Int
+  mut last_execution : Double
+  mut is_throttled : Bool
+  mut queued_action : (() -> Unit)?
+}
+pub fn TimingState::new() -> Self
+pub fn TimingState::reset(Self) -> Unit
+
+// Type aliases
+
+// Traits
+

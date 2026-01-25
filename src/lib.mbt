@@ -1,25 +1,11 @@
 ///|
-/// Calculate the n-th Fibonacci number.
+/// mhx - MoonBit Hypermedia X
+/// A type-safe Hypermedia-Driven Architecture library for MoonBit/Wasm
 ///
-/// ```mbt test
-/// inspect(fib(10), content="89")
-/// ```
-pub fn fib(n : Int) -> Int64 {
-  loop (n, 0L, 1L) {
-    (0, _, b) => b
-    (i, a, b) => continue (i - 1, b, a + b)
-  }
-}
+/// This is the main entry point for the mhx library.
+/// Re-exports core functionality from subpackages.
 
 ///|
-/// data is a labelled argument without default value having type Array[Int]
-/// start is an optional labelled argument with default value 0 having type Int
-/// length is an optional labelled argument without default value having type Option[Int]
-pub fn sum(data~ : Array[Int], start? : Int = 0, length? : Int) -> Int {
-  let end = if length is Some(length) { start + length } else { data.length() }
-  for i = start, sum = 0; i < end; i = i + 1, sum = sum + data[i] {
+/// Library version
+pub let version : String = "0.1.0"
 
-  } else {
-    sum
-  }
-}

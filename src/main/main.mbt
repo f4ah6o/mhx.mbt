@@ -1,5 +1,4 @@
 ///|
 async fn main {
-  @async.sleep(16)
-  println(@lib.fib(10))
+  println("mhx version: \{@mhx.version}")
 }

@@ -213,6 +213,70 @@ moon build --target js
 | Bundle size | ~14KB gzip | <10KB (estimated) |
 | DOM interop | Native | WasmGC + externref |
 
+## Use mhx with tmpx
+
+[tmpx](https://mooncakes.io/docs/#/f4ah6o/tmpx/) is a typed, functional HTML template DSL for MoonBit. While tmpx provides `hx-*` helpers for htmx, you can use mhx attributes directly:
+
+### Basic mhx Attributes
+
+```moonbit
+// Using generic attr function for mx-* attributes
+let button = @tmpx.button(
+  [
+    @tmpx.attr("mx-get", "/api/data"),
+    @tmpx.attr("mx-target", "#result"),
+    @tmpx.attr("mx-swap", "innerHTML"),
+  ],
+  [@tmpx.text("Load Data")],
+)
+```
+
+### Full Example: Server-Side Template
+
+```moonbit
+fn ticket_card(id : Int, title : String) -> @tmpx.Node {
+  @tmpx.div(
+    [
+      @tmpx.class_("card"),
+      @tmpx.attr("mx-get", "/partials/ticket/\{id}"),
+      @tmpx.attr("mx-target", "#pane-center"),
+      @tmpx.attr("mx-swap", "innerHTML"),
+      @tmpx.attr("mx-trigger", "click"),
+    ],
+    [
+      @tmpx.h2([], [@tmpx.text("Ticket #\{id}")]),
+      @tmpx.p([], [@tmpx.text(title)]),
+    ],
+  )
+}
+
+fn search_form() -> @tmpx.Node {
+  @tmpx.input_(
+    [
+      @tmpx.type_("text"),
+      @tmpx.name_("q"),
+      @tmpx.attr("mx-get", "/api/search"),
+      @tmpx.attr("mx-trigger", "input changed debounce:300ms"),
+      @tmpx.attr("mx-target", "#search-results"),
+    ],
+  )
+}
+```
+
+### Architecture with tmpx + mhx
+
+```
+Server (MoonBit + tmpx)          Browser (MoonBit/Wasm + mhx)
++------------------------+       +---------------------------+
+| Generate HTML with     |       | Parse mx-* attributes     |
+| mx-* attributes using  | ----> | Handle events             |
+| tmpx templates         | <---- | Fetch HTML fragments      |
+| Return HTML fragments  |       | Swap into DOM             |
++------------------------+       +---------------------------+
+```
+
+This architecture keeps all your code in MoonBit while following HATEOAS principles - the server returns hypermedia (HTML), not data (JSON).
+
 ## License
 
 Apache-2.0

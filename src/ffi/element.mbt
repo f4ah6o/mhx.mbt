@@ -17,7 +17,7 @@ pub fn Element::get_attribute(self : Element, name : String) -> String = "mhx_ff
 pub fn Element::set_attribute(
   self : Element,
   name : String,
-  value : String
+  value : String,
 ) -> Unit = "mhx_ffi" "element_set_attribute"
 
 ///|
@@ -49,14 +49,14 @@ pub fn Element::has_class(self : Element, class_name : String) -> Bool = "mhx_ff
 /// Returns the element or a null reference
 pub fn Element::query_selector_ffi(
   self : Element,
-  selector : String
+  selector : String,
 ) -> Element = "mhx_ffi" "element_query_selector"
 
 ///|
 /// Check if query_selector found an element
 pub fn Element::query_selector_exists(
   self : Element,
-  selector : String
+  selector : String,
 ) -> Bool = "mhx_ffi" "element_query_selector_exists"
 
 ///|
@@ -121,7 +121,7 @@ pub fn Element::set_text_content(self : Element, text : String) -> Unit = "mhx_f
 pub fn Element::insert_adjacent_html(
   self : Element,
   position : String,
-  html : String
+  html : String,
 ) -> Unit = "mhx_ffi" "element_insert_adjacent_html"
 
 ///|

@@ -5,7 +5,9 @@
 ///|
 /// Parse a complete trigger specification
 /// e.g., "click", "click delay:500ms", "click, keyup"
-pub fn parse_trigger(input : String) -> Array[@trigger.TriggerDef] raise ParseError {
+pub fn parse_trigger(
+  input : String,
+) -> Array[@trigger.TriggerDef] raise ParseError {
   let scanner = Scanner::new(input)
   let triggers : Array[@trigger.TriggerDef] = []
   scanner.skip_whitespace()
@@ -23,7 +25,9 @@ pub fn parse_trigger(input : String) -> Array[@trigger.TriggerDef] raise ParseEr
 
 ///|
 /// Parse a single trigger definition
-fn parse_single_trigger(scanner : Scanner) -> @trigger.TriggerDef raise ParseError {
+fn parse_single_trigger(
+  scanner : Scanner,
+) -> @trigger.TriggerDef raise ParseError {
   // Parse event name
   let event_name = scanner.scan_identifier()
   if event_name.is_empty() {
@@ -39,7 +43,9 @@ fn parse_single_trigger(scanner : Scanner) -> @trigger.TriggerDef raise ParseErr
 
 ///|
 /// Parse modifiers following an event name
-fn parse_modifiers(scanner : Scanner) -> Array[@trigger.Modifier] raise ParseError {
+fn parse_modifiers(
+  scanner : Scanner,
+) -> Array[@trigger.Modifier] raise ParseError {
   let modifiers : Array[@trigger.Modifier] = []
   while not(scanner.is_eof()) && not(scanner.check(',')) {
     scanner.skip_whitespace()
@@ -67,7 +73,7 @@ fn parse_modifiers(scanner : Scanner) -> Array[@trigger.Modifier] raise ParseErr
 /// Parse a modifier by its name
 fn parse_modifier_by_name(
   scanner : Scanner,
-  name : String
+  name : String,
 ) -> @trigger.Modifier raise ParseError {
   match name {
     "once" => @trigger.Modifier::Once
@@ -116,7 +122,7 @@ fn parse_modifier_by_name(
       let mode = parse_queue_mode(scanner)
       @trigger.Modifier::Queue(mode)
     }
-    _ => raise InvalidModifier(pos=scanner.make_position(), name=name)
+    _ => raise InvalidModifier(pos=scanner.make_position(), name~)
   }
 }
 

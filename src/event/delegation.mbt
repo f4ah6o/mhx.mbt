@@ -50,7 +50,7 @@ pub fn EventDelegator::new() -> EventDelegator {
 /// Register an event type for delegation
 pub fn EventDelegator::register_event(
   self : EventDelegator,
-  event_type : String
+  event_type : String,
 ) -> Unit {
   if not(self.registered_events.contains(event_type)) {
     self.registered_events[event_type] = true
@@ -63,7 +63,7 @@ pub fn EventDelegator::register_event(
 pub fn EventDelegator::add_handler(
   self : EventDelegator,
   event_type : String,
-  handler : EventHandler
+  handler : EventHandler,
 ) -> Unit {
   self.register_event(event_type)
   match self.handlers.get(event_type) {
@@ -95,7 +95,7 @@ pub fn EventDelegator::set_active(self : EventDelegator, active : Bool) -> Unit 
 pub fn EventDelegator::dispatch(
   self : EventDelegator,
   event_type : String,
-  mhx_event : MhxEvent
+  mhx_event : MhxEvent,
 ) -> Unit {
   match self.handlers.get(event_type) {
     Some(handlers) =>
@@ -109,7 +109,7 @@ pub fn EventDelegator::dispatch(
 ///|
 /// Get list of registered event types
 pub fn EventDelegator::get_registered_events(
-  self : EventDelegator
+  self : EventDelegator,
 ) -> Array[String] {
   let events : Array[String] = []
   for event_type, _ in self.registered_events {
@@ -121,8 +121,8 @@ pub fn EventDelegator::get_registered_events(
 ///|
 /// Default event types to register
 pub let default_events : Array[String] = [
-  "click", "submit", "change", "input", "focus", "blur", "keydown", "keyup",
-  "mouseenter", "mouseleave", "load", "revealed", "intersect",
+  "click", "submit", "change", "input", "focus", "blur", "keydown", "keyup", "mouseenter",
+  "mouseleave", "load", "revealed", "intersect",
 ]
 
 ///|

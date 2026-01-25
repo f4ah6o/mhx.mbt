@@ -5,8 +5,8 @@
 ///|
 /// Known modifier keywords
 let modifier_keywords : Array[String] = [
-  "once", "changed", "consume", "prevent", "delay", "throttle", "debounce",
-  "from", "target", "queue",
+  "once", "changed", "consume", "prevent", "delay", "throttle", "debounce", "from",
+  "target", "queue",
 ]
 
 ///|

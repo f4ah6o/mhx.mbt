@@ -72,7 +72,7 @@ pub fn SwapOptions::default() -> SwapOptions {
 ///|
 /// Create swap options with a specific strategy
 pub fn SwapOptions::with_strategy(strategy : Strategy) -> SwapOptions {
-  { ..SwapOptions::default(), strategy }
+  { ..SwapOptions::default(), strategy, }
 }
 
 ///|
@@ -164,9 +164,7 @@ fn pow10(n : Int) -> Int {
 ///|
 /// Parse int or return default
 fn parse_int_or(s : String, default_val : Int) -> Int {
-  try {
-    @strconv.parse_int(s)
-  } catch {
+  @strconv.parse_int(s) catch {
     _ => default_val
   }
 }
@@ -176,7 +174,7 @@ fn parse_int_or(s : String, default_val : Int) -> Int {
 pub fn perform_swap(
   target : @ffi.Element,
   content : String,
-  options : SwapOptions
+  options : SwapOptions,
 ) -> Unit {
   match options.strategy {
     InnerHTML => target.set_inner_html(content)

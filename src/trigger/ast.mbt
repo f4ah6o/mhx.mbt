@@ -14,10 +14,7 @@ pub(all) struct TriggerDef {
 
 ///|
 pub impl ToJson for TriggerDef with to_json(self) {
-  {
-    "event": self.event_name.to_json(),
-    "modifiers": self.modifiers.to_json(),
-  }
+  { "event": self.event_name.to_json(), "modifiers": self.modifiers.to_json() }
 }
 
 ///|
@@ -30,7 +27,7 @@ pub fn TriggerDef::simple(event_name : String) -> TriggerDef {
 /// Create a trigger with modifiers
 pub fn TriggerDef::new(
   event_name : String,
-  modifiers : Array[Modifier]
+  modifiers : Array[Modifier],
 ) -> TriggerDef {
   { event_name, modifiers }
 }

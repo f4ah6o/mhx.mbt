@@ -118,16 +118,10 @@ test "parse complex trigger" {
 ///|
 test "parse trigger to_json" {
   let triggers = @parser.parse_trigger("click delay:500ms once")
-  @json.inspect(
-    triggers[0],
-    content={
-      "event": "click",
-      "modifiers": [
-        { "type": "delay", "ms": 500 },
-        { "type": "once" },
-      ],
-    },
-  )
+  @json.inspect(triggers[0], content={
+    "event": "click",
+    "modifiers": [{ "type": "delay", "ms": 500 }, { "type": "once" }],
+  })
 }
 
 ///|
@@ -144,7 +138,9 @@ test "parse whitespace only" {
 
 ///|
 test "panic parse invalid modifier" {
-  let result : Result[_, _] = try? @parser.parse_trigger("click invalid_modifier:value")
+  let result : Result[_, _] = try? @parser.parse_trigger(
+    "click invalid_modifier:value",
+  )
   inspect(
     result,
     content="Err(InvalidModifier(Position({ offset: 27, char: '\\x00' }), \"invalid_modifier\"))",

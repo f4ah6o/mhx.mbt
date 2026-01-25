@@ -30,7 +30,7 @@ pub fn MutationObserver::observe(
   target : Element,
   subtree : Bool,
   child_list : Bool,
-  attributes : Bool
+  attributes : Bool,
 ) -> Unit = "mhx_ffi" "mutation_observer_observe"
 
 ///|
@@ -45,7 +45,7 @@ pub fn MutationObserver::records_count(self : MutationObserver) -> Int = "mhx_ff
 /// Get mutation record at index
 pub fn MutationObserver::record_at(
   self : MutationObserver,
-  index : Int
+  index : Int,
 ) -> MutationRecord = "mhx_ffi" "mutation_observer_record_at"
 
 ///|
@@ -66,7 +66,10 @@ pub fn MutationRecord::added_nodes_count(self : MutationRecord) -> Int = "mhx_ff
 
 ///|
 /// Get added node at index
-pub fn MutationRecord::added_node_at(self : MutationRecord, index : Int) -> Node = "mhx_ffi" "mutation_record_added_node_at"
+pub fn MutationRecord::added_node_at(
+  self : MutationRecord,
+  index : Int,
+) -> Node = "mhx_ffi" "mutation_record_added_node_at"
 
 ///|
 /// Get number of removed nodes (for childList mutations)
@@ -76,7 +79,7 @@ pub fn MutationRecord::removed_nodes_count(self : MutationRecord) -> Int = "mhx_
 /// Get removed node at index
 pub fn MutationRecord::removed_node_at(
   self : MutationRecord,
-  index : Int
+  index : Int,
 ) -> Node = "mhx_ffi" "mutation_record_removed_node_at"
 
 ///|

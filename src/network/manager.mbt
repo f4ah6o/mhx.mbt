@@ -48,7 +48,7 @@ pub fn RequestTask::new(
   element_id : Int,
   url : String,
   options : RequestOptions,
-  sync_strategy : SyncStrategy
+  sync_strategy : SyncStrategy,
 ) -> RequestTask {
   let controller = @ffi.AbortController::new()
   let options_with_signal = options.with_signal(controller.signal())
@@ -119,7 +119,10 @@ pub fn RequestManager::new() -> RequestManager {
 
 ///|
 /// Get or create a queue for an element
-fn RequestManager::get_queue(self : RequestManager, element_id : Int) -> RequestQueue {
+fn RequestManager::get_queue(
+  self : RequestManager,
+  element_id : Int,
+) -> RequestQueue {
   match self.queues.get(element_id) {
     Some(queue) => queue
     None => {
@@ -149,14 +152,14 @@ pub fn RequestManager::schedule(
   element_id : Int,
   url : String,
   options : RequestOptions,
-  strategy : SyncStrategy
+  strategy : SyncStrategy,
 ) -> ScheduleResult {
   let task_id = self.next_id
   self.next_id += 1
   let queue = self.get_queue(element_id)
   let task = RequestTask::new(task_id, element_id, url, options, strategy)
   match strategy {
-    Drop => {
+    Drop =>
       // Only execute if no request is in flight
       if queue.is_busy() {
         ScheduleResult::Dropped
@@ -164,7 +167,6 @@ pub fn RequestManager::schedule(
         queue.current = Some(task)
         ScheduleResult::Execute(task)
       }
-    }
     Replace => {
       // Cancel existing and start new
       match queue.current {
@@ -210,7 +212,7 @@ pub fn RequestManager::schedule(
 pub fn RequestManager::complete(
   self : RequestManager,
   element_id : Int,
-  _task_id : Int
+  _task_id : Int,
 ) -> RequestTask? {
   match self.queues.get(element_id) {
     Some(queue) => {
@@ -232,7 +234,7 @@ pub fn RequestManager::complete(
 /// Cancel all requests for an element
 pub fn RequestManager::cancel_all(
   self : RequestManager,
-  element_id : Int
+  element_id : Int,
 ) -> Unit {
   match self.queues.get(element_id) {
     Some(queue) => {
@@ -254,7 +256,7 @@ pub fn RequestManager::cancel_all(
 /// Get count of pending requests for an element
 pub fn RequestManager::pending_count(
   self : RequestManager,
-  element_id : Int
+  element_id : Int,
 ) -> Int {
   match self.queues.get(element_id) {
     Some(queue) => {
@@ -282,9 +284,8 @@ pub fn parse_sync_strategy(value : String) -> SyncStrategy {
   match v {
     "drop" => SyncStrategy::Drop
     "replace" => SyncStrategy::Replace
-    "queue" | "queue first" | "queue:first" => SyncStrategy::Queue(
-      QueueBehavior::First,
-    )
+    "queue" | "queue first" | "queue:first" =>
+      SyncStrategy::Queue(QueueBehavior::First)
     "queue last" | "queue:last" => SyncStrategy::Queue(QueueBehavior::Last)
     "queue all" | "queue:all" => SyncStrategy::Queue(QueueBehavior::All)
     _ => SyncStrategy::Drop // default

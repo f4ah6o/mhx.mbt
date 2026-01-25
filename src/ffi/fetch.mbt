@@ -106,7 +106,7 @@ pub fn JsFormData::from_element(element : Element) -> JsFormData = "mhx_ffi" "fo
 pub fn JsFormData::append(
   self : JsFormData,
   name : String,
-  value : String
+  value : String,
 ) -> Unit = "mhx_ffi" "form_data_append"
 
 ///|

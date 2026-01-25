@@ -38,7 +38,7 @@ pub fn get_request_info(element : @ffi.Element) -> (HttpMethod, String)? {
 ///|
 /// Parse element configuration from attributes
 pub fn parse_element_config(
-  element : @ffi.Element
+  element : @ffi.Element,
 ) -> ElementConfig raise @parser.ParseError {
   // Get HTTP method and URL
   let (http_method, url) = match get_request_info(element) {
@@ -70,21 +70,14 @@ pub fn parse_element_config(
   } else {
     None
   }
-  {
-    triggers,
-    http_method,
-    url,
-    swap,
-    target,
-    processed: true,
-  }
+  { triggers, http_method, url, swap, target, processed: true }
 }
 
 ///|
 /// Check if a trigger matches the current event
 pub fn trigger_matches_event(
   trigger : @trigger.TriggerDef,
-  event_type : String
+  event_type : String,
 ) -> Bool {
   trigger.event_name == event_type
 }
@@ -95,7 +88,7 @@ pub fn trigger_matches_event(
 /// For now, we return true (no filtering)
 pub fn check_filter_conditions(
   _trigger : @trigger.TriggerDef,
-  _event : @ffi.Event
+  _event : @ffi.Event,
 ) -> Bool {
   // TODO: Implement filter evaluation via FFI
   // This would require calling JavaScript to eval the filter expression

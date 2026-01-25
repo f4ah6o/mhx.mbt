@@ -115,7 +115,7 @@ pub fn ConfigCache::new() -> ConfigCache {
 /// Get or create an ID for an element (using JS-side element tracking)
 pub fn ConfigCache::get_element_id(
   self : ConfigCache,
-  element_hash : Int
+  element_hash : Int,
 ) -> Int {
   match self.element_ids.get(element_hash) {
     Some(id) => id
@@ -133,7 +133,7 @@ pub fn ConfigCache::get_element_id(
 pub fn ConfigCache::set(
   self : ConfigCache,
   element_id : Int,
-  config : ElementConfig
+  config : ElementConfig,
 ) -> Unit {
   self.configs[element_id] = config
 }

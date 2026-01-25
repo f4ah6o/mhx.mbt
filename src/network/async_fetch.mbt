@@ -20,11 +20,22 @@ pub(all) enum FetchResult {
   Success(Response)
   Error(String)
   Pending
-} derive(Show)
+}
+
+///|
+/// Show implementation for FetchResult
+pub impl Show for FetchResult with output(self, logger) {
+  match self {
+    Success(resp) =>
+      logger.write_string("Success(status=" + resp.status().to_string() + ")")
+    Error(msg) => logger.write_string("Error(" + msg + ")")
+    Pending => logger.write_string("Pending")
+  }
+}
 
 ///|
 /// Internal callback registry for managing async responses
-struct CallbackRegistry {
+priv struct CallbackRegistry {
   mut next_id : Int
   callbacks : Map[Int, (FetchCallback, FetchErrorCallback)]
 }
@@ -36,7 +47,7 @@ let callback_registry : CallbackRegistry = { next_id: 1, callbacks: {} }
 /// Register a callback pair and return the ID
 fn register_callbacks(
   on_success : FetchCallback,
-  on_error : FetchErrorCallback
+  on_error : FetchErrorCallback,
 ) -> Int {
   let id = callback_registry.next_id
   callback_registry.next_id += 1
@@ -55,7 +66,8 @@ pub fn on_fetch_success(callback_id : Int, response_text : String) -> Unit {
       (success_cb.on_success)(response)
       callback_registry.callbacks.remove(callback_id)
     }
-    None => @ffi.console_error("Unknown callback ID: " + callback_id.to_string())
+    None =>
+      @ffi.console_error("Unknown callback ID: " + callback_id.to_string())
   }
 }
 
@@ -67,7 +79,8 @@ pub fn on_fetch_error(callback_id : Int, error_message : String) -> Unit {
       (error_cb.on_error)(error_message)
       callback_registry.callbacks.remove(callback_id)
     }
-    None => @ffi.console_error("Unknown callback ID: " + callback_id.to_string())
+    None =>
+      @ffi.console_error("Unknown callback ID: " + callback_id.to_string())
   }
 }
 
@@ -77,12 +90,9 @@ pub fn fetch_async(
   url : String,
   options : RequestOptions,
   on_success : (Response) -> Unit,
-  on_error : (String) -> Unit
+  on_error : (String) -> Unit,
 ) -> Int {
-  let callback_id = register_callbacks(
-    { on_success },
-    { on_error },
-  )
+  let callback_id = register_callbacks({ on_success, }, { on_error, })
   // Create the fetch and register JS-side callbacks
   let json_options = options.to_json_string()
   // This FFI function will call on_fetch_success/on_fetch_error when done
@@ -95,7 +105,7 @@ pub fn fetch_async(
 fn initiate_fetch_ffi(
   url : String,
   options_json : String,
-  callback_id : Int
+  callback_id : Int,
 ) -> Unit = "mhx_ffi" "initiate_fetch"
 
 ///|
@@ -123,10 +133,7 @@ fn create_dummy_response_ffi() -> @ffi.JsResponse = "mhx_ffi" "create_dummy_resp
 
 ///|
 /// Fetch with a simple promise-like interface using tasks
-pub fn fetch_task(
-  url : String,
-  options : RequestOptions
-) -> FetchTask {
+pub fn fetch_task(url : String, options : RequestOptions) -> FetchTask {
   FetchTask::new(url, options)
 }
 
@@ -153,7 +160,7 @@ pub fn FetchTask::new(url : String, options : RequestOptions) -> FetchTask {
 /// Start the fetch task
 pub fn FetchTask::start(
   self : FetchTask,
-  on_complete : (FetchResult) -> Unit
+  on_complete : (FetchResult) -> Unit,
 ) -> Unit {
   self.callback_id = fetch_async(
     self.url,

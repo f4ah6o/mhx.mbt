@@ -36,21 +36,21 @@ pub fn Document::document_element_ffi(self : Document) -> Element = "mhx_ffi" "d
 /// Query for a single element matching the selector
 pub fn Document::query_selector_ffi(
   self : Document,
-  selector : String
+  selector : String,
 ) -> Element = "mhx_ffi" "document_query_selector"
 
 ///|
 /// Check if query_selector found an element
 pub fn Document::query_selector_exists(
   self : Document,
-  selector : String
+  selector : String,
 ) -> Bool = "mhx_ffi" "document_query_selector_exists"
 
 ///|
 /// Get the number of elements matching selector
 pub fn Document::query_selector_all_count(
   self : Document,
-  selector : String
+  selector : String,
 ) -> Int = "mhx_ffi" "document_query_selector_all_count"
 
 ///|
@@ -58,7 +58,7 @@ pub fn Document::query_selector_all_count(
 pub fn Document::query_selector_all_at(
   self : Document,
   selector : String,
-  index : Int
+  index : Int,
 ) -> Element = "mhx_ffi" "document_query_selector_all_at"
 
 ///|
@@ -98,7 +98,7 @@ pub fn Document::has_active_element(self : Document) -> Bool = "mhx_ffi" "docume
 pub fn Document::add_event_listener(
   self : Document,
   event_type : String,
-  handler : (Event) -> Unit
+  handler : (Event) -> Unit,
 ) -> Unit = "mhx_ffi" "document_add_event_listener"
 
 ///|
@@ -106,7 +106,7 @@ pub fn Document::add_event_listener(
 pub fn Window::add_event_listener(
   self : Window,
   event_type : String,
-  handler : (Event) -> Unit
+  handler : (Event) -> Unit,
 ) -> Unit = "mhx_ffi" "window_add_event_listener"
 
 ///|
@@ -122,7 +122,7 @@ pub fn Window::set_location_href(self : Window, href : String) -> Unit = "mhx_ff
 pub fn Window::history_push_state(
   self : Window,
   url : String,
-  title : String
+  title : String,
 ) -> Unit = "mhx_ffi" "window_history_push_state"
 
 ///|
@@ -130,7 +130,7 @@ pub fn Window::history_push_state(
 pub fn Window::history_replace_state(
   self : Window,
   url : String,
-  title : String
+  title : String,
 ) -> Unit = "mhx_ffi" "window_history_replace_state"
 
 ///|
@@ -146,7 +146,7 @@ pub fn Window::history_forward(self : Window) -> Unit = "mhx_ffi" "window_histor
 pub fn Window::set_timeout(
   self : Window,
   handler : () -> Unit,
-  delay_ms : Int
+  delay_ms : Int,
 ) -> Int = "mhx_ffi" "window_set_timeout"
 
 ///|
@@ -158,7 +158,7 @@ pub fn Window::clear_timeout(self : Window, id : Int) -> Unit = "mhx_ffi" "windo
 pub fn Window::set_interval(
   self : Window,
   handler : () -> Unit,
-  interval_ms : Int
+  interval_ms : Int,
 ) -> Int = "mhx_ffi" "window_set_interval"
 
 ///|
@@ -169,7 +169,7 @@ pub fn Window::clear_interval(self : Window, id : Int) -> Unit = "mhx_ffi" "wind
 /// Request animation frame
 pub fn Window::request_animation_frame(
   self : Window,
-  handler : (Double) -> Unit
+  handler : (Double) -> Unit,
 ) -> Int = "mhx_ffi" "window_request_animation_frame"
 
 ///|

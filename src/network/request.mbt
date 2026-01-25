@@ -18,12 +18,7 @@ pub(all) struct RequestOptions {
 ///|
 /// Create default GET request options
 pub fn RequestOptions::default() -> RequestOptions {
-  {
-    http_method: "GET",
-    headers: {},
-    body: Option::None,
-    signal: Option::None,
-  }
+  { http_method: "GET", headers: {}, body: Option::None, signal: Option::None }
 }
 
 ///|
@@ -37,9 +32,7 @@ pub fn RequestOptions::get() -> RequestOptions {
 pub fn RequestOptions::post(body : String) -> RequestOptions {
   {
     http_method: "POST",
-    headers: {
-      "Content-Type": "application/x-www-form-urlencoded",
-    },
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
     body: Some(body),
     signal: Option::None,
   }
@@ -50,9 +43,7 @@ pub fn RequestOptions::post(body : String) -> RequestOptions {
 pub fn RequestOptions::post_json(body : String) -> RequestOptions {
   {
     http_method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
+    headers: { "Content-Type": "application/json" },
     body: Some(body),
     signal: Option::None,
   }
@@ -62,7 +53,7 @@ pub fn RequestOptions::post_json(body : String) -> RequestOptions {
 /// Set abort signal
 pub fn RequestOptions::with_signal(
   self : RequestOptions,
-  signal : @ffi.AbortSignal
+  signal : @ffi.AbortSignal,
 ) -> RequestOptions {
   { ..self, signal: Some(signal) }
 }
@@ -72,11 +63,11 @@ pub fn RequestOptions::with_signal(
 pub fn RequestOptions::with_header(
   self : RequestOptions,
   name : String,
-  value : String
+  value : String,
 ) -> RequestOptions {
   let headers = self.headers
   headers[name] = value
-  { ..self, headers }
+  { ..self, headers, }
 }
 
 ///|
@@ -99,9 +90,7 @@ pub fn RequestOptions::to_json_string(self : RequestOptions) -> String {
   }
   // Add body if present
   match self.body {
-    Some(b) => {
-      result = result + ",\"body\":\"" + escape_json_string(b) + "\""
-    }
+    Some(b) => result = result + ",\"body\":\"" + escape_json_string(b) + "\""
     None => ()
   }
   result = result + "}"

@@ -14,21 +14,18 @@ test "TriggerDef::new creates trigger with modifiers" {
 
 ///|
 test "TriggerDef modifier accessors" {
-  let t = TriggerDef::new(
-    "click",
-    [
-      Once,
-      Delay(500),
-      Throttle(100),
-      Debounce(200),
-      From(Body),
-      Target(Css("#target")),
-      Filter("ctrlKey"),
-      Consume,
-      Prevent,
-      Queue(Replace),
-    ],
-  )
+  let t = TriggerDef::new("click", [
+    Once,
+    Delay(500),
+    Throttle(100),
+    Debounce(200),
+    From(Body),
+    Target(Css("#target")),
+    Filter("ctrlKey"),
+    Consume,
+    Prevent,
+    Queue(Replace),
+  ])
   inspect(t.is_once(), content="true")
   inspect(t.get_delay(), content="Some(500)")
   inspect(t.get_throttle(), content="Some(100)")
@@ -66,11 +63,8 @@ test "Selector variants" {
 ///|
 test "TriggerDef to_json" {
   let t = TriggerDef::new("click", [Delay(500), Once])
-  @json.inspect(
-    t,
-    content={
-      "event": "click",
-      "modifiers": [{ "type": "delay", "ms": 500 }, { "type": "once" }],
-    },
-  )
+  @json.inspect(t, content={
+    "event": "click",
+    "modifiers": [{ "type": "delay", "ms": 500 }, { "type": "once" }],
+  })
 }

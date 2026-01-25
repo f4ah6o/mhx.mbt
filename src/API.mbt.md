@@ -9,6 +9,9 @@ for MoonBit/Wasm, inspired by htmx.
 
 ## Version
 
-```mbt test
-inspect(@mhx.version, content="0.1.0")
+```mbt check
+///|
+test {
+  inspect(@mhx.version, content="0.1.0")
+}
 ```

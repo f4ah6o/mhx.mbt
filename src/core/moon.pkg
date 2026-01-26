@@ -5,4 +5,5 @@ import {
   "f4ah6o/mhx/event" as @event,
   "f4ah6o/mhx/network" as @network,
   "f4ah6o/mhx/swap" as @swap,
+  "moonbitlang/core/json" as @json,
 }

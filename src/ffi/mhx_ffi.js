@@ -205,6 +205,10 @@ export function element_matches(elem, selector) {
   return elem.matches(selector);
 }
 
+export function element_same(a, b) {
+  return a === b;
+}
+
 export function element_parent_element(elem) {
   return elem.parentElement;
 }
@@ -331,6 +335,15 @@ export function event_cancel_bubble(event) {
 
 export function event_time_stamp(event) {
   return event.timeStamp;
+}
+
+export function event_eval_filter(event, expr) {
+  try {
+    const fn = new Function('event', `with (event) { return !!(${expr}); }`);
+    return fn(event);
+  } catch (_) {
+    return false;
+  }
 }
 
 // Mouse Event
@@ -789,6 +802,7 @@ export default {
   element_closest,
   element_closest_exists,
   element_matches,
+  element_same,
   element_parent_element,
   element_has_parent,
   element_tag_name,
@@ -821,6 +835,7 @@ export default {
   event_default_prevented,
   event_cancel_bubble,
   event_time_stamp,
+  event_eval_filter,
   event_as_mouse_event,
   mouse_event_client_x,
   mouse_event_client_y,

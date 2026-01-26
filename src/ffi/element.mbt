@@ -80,6 +80,10 @@ pub fn Element::parent_element_ffi(self : Element) -> Element = "mhx_ffi" "eleme
 pub fn Element::has_parent(self : Element) -> Bool = "mhx_ffi" "element_has_parent"
 
 ///|
+/// Check if two elements are the same reference
+pub fn Element::same(self : Element, other : Element) -> Bool = "mhx_ffi" "element_same"
+
+///|
 /// Get the tag name (uppercase)
 pub fn Element::tag_name(self : Element) -> String = "mhx_ffi" "element_tag_name"
 

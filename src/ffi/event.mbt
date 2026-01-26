@@ -52,6 +52,12 @@ pub fn Event::cancel_bubble(self : Event) -> Bool = "mhx_ffi" "event_cancel_bubb
 pub fn Event::time_stamp(self : Event) -> Double = "mhx_ffi" "event_time_stamp"
 
 ///|
+/// Evaluate a JavaScript expression in event context
+/// Returns true if expression is truthy
+pub fn Event::eval_filter(self : Event, expr : String) -> Bool =
+  "mhx_ffi" "event_eval_filter"
+
+///|
 /// Opaque type for MouseEvent (extends Event)
 #external
 pub type MouseEvent

@@ -75,7 +75,6 @@ pub fn RequestOptions::with_header(
 pub fn RequestOptions::to_json_string(self : RequestOptions) -> String {
   let mut result = "{"
   result = result + "\"method\":\"" + self.http_method + "\""
-  // Add headers if any
   if self.headers.length() > 0 {
     result = result + ",\"headers\":{"
     let mut first = true
@@ -83,12 +82,12 @@ pub fn RequestOptions::to_json_string(self : RequestOptions) -> String {
       if not(first) {
         result = result + ","
       }
-      result = result + "\"" + key + "\":\"" + value + "\""
+      result = result + "\"" + escape_json_string(key) + "\":\""
+      result = result + escape_json_string(value) + "\""
       first = false
     }
     result = result + "}"
   }
-  // Add body if present
   match self.body {
     Some(b) => result = result + ",\"body\":\"" + escape_json_string(b) + "\""
     None => ()
@@ -101,8 +100,7 @@ pub fn RequestOptions::to_json_string(self : RequestOptions) -> String {
 /// Escape special characters in JSON string
 fn escape_json_string(s : String) -> String {
   let mut result = ""
-  for i = 0; i < s.length(); i = i + 1 {
-    let c = s[i]
+  for c in s {
     match c {
       '"' => result = result + "\\\""
       '\\' => result = result + "\\\\"
@@ -131,9 +129,21 @@ pub fn Response::new(raw : @ffi.JsResponse, body : String) -> Response {
 }
 
 ///|
+/// Create a Response from body text with a dummy raw response
+pub fn Response::from_text(text : String) -> Response {
+  { raw: create_dummy_response_ffi(), body: text }
+}
+
+///|
 /// Get response status code
 pub fn Response::status(self : Response) -> Int {
   self.raw.status()
+}
+
+///|
+/// Get response status text
+pub fn Response::status_text(self : Response) -> String {
+  self.raw.status_text()
 }
 
 ///|
@@ -165,3 +175,7 @@ pub fn Response::redirected(self : Response) -> Bool {
 pub fn Response::url(self : Response) -> String {
   self.raw.url()
 }
+
+///|
+/// Create a dummy JsResponse for tests and callback paths
+fn create_dummy_response_ffi() -> @ffi.JsResponse = "mhx_ffi" "create_dummy_response"

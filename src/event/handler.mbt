@@ -14,7 +14,11 @@ pub fn has_mhx_attributes(element : @ffi.Element) -> Bool {
   element.has_attribute("mx-put") ||
   element.has_attribute("mx-patch") ||
   element.has_attribute("mx-delete") ||
-  element.has_attribute("mx-trigger")
+  element.has_attribute("mx-trigger") ||
+  element.has_attribute("mx-target") ||
+  element.has_attribute("mx-swap") ||
+  element.has_attribute("mx-sync") ||
+  element.has_attribute("mx-vals")
 }
 
 ///|
@@ -70,7 +74,17 @@ pub fn parse_element_config(
   } else {
     None
   }
-  { triggers, http_method, url, swap, target, processed: true }
+  let sync = if element.has_attribute("mx-sync") {
+    Some(@network.parse_sync_strategy(element.get_attribute("mx-sync")))
+  } else {
+    None
+  }
+  let vals = if element.has_attribute("mx-vals") {
+    Some(element.get_attribute("mx-vals"))
+  } else {
+    None
+  }
+  { triggers, http_method, url, swap, target, sync, vals, processed: true }
 }
 
 ///|
@@ -87,10 +101,11 @@ pub fn trigger_matches_event(
 /// Note: Filter conditions are JavaScript expressions, which would need FFI eval
 /// For now, we return true (no filtering)
 pub fn check_filter_conditions(
-  _trigger : @trigger.TriggerDef,
-  _event : @ffi.Event,
+  trigger : @trigger.TriggerDef,
+  event : @ffi.Event,
 ) -> Bool {
-  // TODO: Implement filter evaluation via FFI
-  // This would require calling JavaScript to eval the filter expression
-  true
+  match trigger.get_filter() {
+    Some(expr) => event.eval_filter(expr)
+    None => true
+  }
 }

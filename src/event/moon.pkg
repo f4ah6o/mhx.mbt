@@ -2,4 +2,5 @@ import {
   "f4ah6o/mhx/ffi" as @ffi,
   "f4ah6o/mhx/trigger" as @trigger,
   "f4ah6o/mhx/parser" as @parser,
+  "f4ah6o/mhx/network" as @network,
 }

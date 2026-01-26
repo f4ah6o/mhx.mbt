@@ -39,6 +39,12 @@ pub fn TriggerDef::is_once(self : TriggerDef) -> Bool {
 }
 
 ///|
+/// Check if this trigger has the Changed modifier
+pub fn TriggerDef::is_changed(self : TriggerDef) -> Bool {
+  self.modifiers.iter().any(fn(m) { m is Changed })
+}
+
+///|
 /// Get the delay modifier value, if present
 pub fn TriggerDef::get_delay(self : TriggerDef) -> Int? {
   for m in self.modifiers {

@@ -60,8 +60,6 @@ fn register_callbacks(
 pub fn on_fetch_success(callback_id : Int, response_text : String) -> Unit {
   match callback_registry.callbacks.get(callback_id) {
     Some((success_cb, _)) => {
-      // Create a minimal response (in real impl, would have full JsResponse)
-      // For now we'll create a placeholder
       let response = Response::from_text(response_text)
       (success_cb.on_success)(response)
       callback_registry.callbacks.remove(callback_id)
@@ -121,15 +119,7 @@ fn cancel_fetch_ffi(callback_id : Int) -> Unit = "mhx_ffi" "cancel_fetch"
 
 ///|
 /// Create a Response from text (placeholder until full response handling)
-fn Response::from_text(text : String) -> Response {
-  // This is a placeholder - in real implementation we'd have the full JsResponse
-  // For now, create a minimal response structure
-  { raw: create_dummy_response_ffi(), body: text }
-}
-
-///|
-/// Create a dummy JsResponse for testing (FFI stub)
-fn create_dummy_response_ffi() -> @ffi.JsResponse = "mhx_ffi" "create_dummy_response"
+// Response::from_text is implemented in request.mbt
 
 ///|
 /// Fetch with a simple promise-like interface using tasks

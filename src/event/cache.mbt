@@ -15,6 +15,10 @@ pub(all) struct ElementConfig {
   swap : SwapStrategy
   /// Target selector (if specified)
   target : String?
+  /// Sync strategy override (if specified)
+  sync : @network.SyncStrategy?
+  /// Raw mx-vals JSON string (if specified)
+  vals : String?
   /// Whether this config has been processed
   processed : Bool
 } derive(Show)
@@ -78,6 +82,14 @@ pub impl ToJson for ElementConfig with to_json(self) {
       Some(t) => t.to_json()
       Option::None => Json::null()
     },
+    "sync": match self.sync {
+      Some(s) => s.to_string().to_json()
+      Option::None => Json::null()
+    },
+    "vals": match self.vals {
+      Some(v) => v.to_json()
+      Option::None => Json::null()
+    },
     "processed": self.processed.to_json(),
   }
 }
@@ -91,6 +103,8 @@ pub fn ElementConfig::default() -> ElementConfig {
     url: "",
     swap: SwapStrategy::InnerHTML,
     target: Option::None,
+    sync: Option::None,
+    vals: Option::None,
     processed: false,
   }
 }

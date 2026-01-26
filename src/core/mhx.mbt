@@ -13,6 +13,8 @@ pub struct Mhx {
   cache : @event.ConfigCache
   /// Timing manager for delay/throttle/debounce
   timing : @event.TimingManager
+  /// Last observed input values for changed modifier
+  changed_values : Map[Int, String]
   /// Whether mhx has been initialized
   mut initialized : Bool
   /// MutationObserver for auto-processing new elements
@@ -31,6 +33,7 @@ pub fn Mhx::new() -> Mhx {
     request_manager: @network.RequestManager::new(),
     cache: @event.ConfigCache::new(),
     timing: @event.TimingManager::new(),
+    changed_values: {},
     initialized: false,
     observer: None,
     observer_callback_id: 0,
@@ -53,6 +56,8 @@ pub fn Mhx::init_mhx(self : Mhx) -> Unit {
   self.delegator.set_active(true)
   // Set up MutationObserver to auto-process new elements
   self.setup_mutation_observer(body)
+  // Register event listeners on document
+  register_default_event_listeners()
 }
 
 ///|
@@ -84,9 +89,8 @@ pub fn Mhx::process_element(self : Mhx, element : @ffi.Element) -> Unit {
   }
   // Parse configuration
   let config : @event.ElementConfig = @event.parse_element_config(element) catch {
-    _ => {
-      // Log error and skip this element
-      @ffi.console_error("mhx: Failed to parse element configuration")
+    err => {
+      report_error(from_parse_error(err))
       return
     }
   }
@@ -224,7 +228,7 @@ fn hash_element(element : @ffi.Element) -> Int {
   let combined = tag + "#" + id
   // Simple string hash
   let mut hash = 0
-  for c in combined.iter() {
+  for c in combined {
     hash = hash * 31 + c.to_int()
   }
   hash
@@ -256,9 +260,10 @@ pub fn Mhx::handle_event(
           let parsed : @event.ElementConfig? = Some(
             @event.parse_element_config(current),
           ) catch {
-            _ =>
-              // Skip invalid elements
+            err => {
+              report_error(from_parse_error(err))
               None
+            }
           }
           match parsed {
             Some(c) => {
@@ -276,6 +281,10 @@ pub fn Mhx::handle_event(
             if @event.trigger_matches_event(trigger, event_type) {
               // Check filter conditions
               if @event.check_filter_conditions(trigger, event) {
+                // Apply changed modifier for input-like events
+                if trigger.is_changed() && not(self.is_value_changed(current, trigger_index)) {
+                  continue
+                }
                 // Get timing state for this element/trigger combination
                 let timing_state = self.timing.get_state(
                   element_id, trigger_index,
@@ -319,16 +328,45 @@ pub fn Mhx::handle_event(
 }
 
 ///|
+/// Check if element value changed since last trigger
+fn Mhx::is_value_changed(
+  self : Mhx,
+  element : @ffi.Element,
+  trigger_index : Int,
+) -> Bool {
+  let element_hash = hash_element(element)
+  let element_id = self.cache.get_element_id(element_hash)
+  let key = element_id * 100000 + trigger_index
+  let current = element.value()
+  match self.changed_values.get(key) {
+    Some(prev) => {
+      if prev == current {
+        false
+      } else {
+        self.changed_values[key] = current
+        true
+      }
+    }
+    None => {
+      self.changed_values[key] = current
+      true
+    }
+  }
+}
+
+///|
 /// Execute an action for a matched trigger
 fn Mhx::execute_action(
   self : Mhx,
   element : @ffi.Element,
   config : @event.ElementConfig,
-  _trigger : @trigger.TriggerDef,
+  trigger : @trigger.TriggerDef,
   event : @ffi.Event,
 ) -> Unit {
   // Handle prevent modifier (preventDefault)
-  event.prevent_default()
+  if trigger.should_prevent() {
+    event.prevent_default()
+  }
   // Determine the URL and method
   let url = config.url
   if url.is_empty() {
@@ -337,7 +375,7 @@ fn Mhx::execute_action(
   // Build request options
   let options = build_request_options(element, config)
   // Determine sync strategy
-  let sync_strategy = get_sync_strategy(element)
+  let sync_strategy = get_sync_strategy(element, config)
   // Schedule the request
   let element_hash = hash_element(element)
   let element_id = self.cache.get_element_id(element_hash)
@@ -349,7 +387,7 @@ fn Mhx::execute_action(
       // Add loading indicator
       element.add_class("mx-request")
       // Execute the request
-      self.execute_request(element, task, config)
+      self.execute_request(element, task, config, trigger)
     }
     @network.ScheduleResult::Queued =>
       // Request is queued, will be executed later
@@ -384,18 +422,7 @@ fn build_request_options(
     @event.HttpMethod::Post
     | @event.HttpMethod::Put
     | @event.HttpMethod::Patch => {
-      // Check if element is a form or find closest form
-      let tag = element.tag_name()
-      let body_data = if tag == "FORM" {
-        collect_form_data(element)
-      } else if element.closest_exists("form") {
-        collect_form_data(element.closest_ffi("form"))
-        // Check for mx-vals attribute
-      } else if element.has_attribute("mx-vals") {
-        element.get_attribute("mx-vals")
-      } else {
-        ""
-      }
+      let body_data = build_request_body(element, config)
       if not(body_data.is_empty()) {
         options = { ..options, body: Some(body_data) }
         options = options.with_header(
@@ -403,7 +430,21 @@ fn build_request_options(
         )
       }
     }
-    _ => ()
+    _ => {
+      let mx_vals_json = match config.vals {
+        Some(v) => v
+        None =>
+          if element.has_attribute("mx-vals") {
+            element.get_attribute("mx-vals")
+          } else {
+            ""
+          }
+      }
+      if not(mx_vals_json.trim().is_empty()) {
+        let merged_json = merge_vals_json("{}", mx_vals_json)
+        options = options.with_header("HX-Trigger-Values", merged_json)
+      }
+    }
   }
   // Add HX-Trigger header
   if element.has_attribute("id") {
@@ -411,6 +452,8 @@ fn build_request_options(
   }
   options
 }
+
+// helpers are defined in request_body.mbt and selector.mbt
 
 ///|
 /// Collect form data from a form element
@@ -421,11 +464,18 @@ fn collect_form_data(form : @ffi.Element) -> String {
 
 ///|
 /// Get sync strategy from element attributes
-fn get_sync_strategy(element : @ffi.Element) -> @network.SyncStrategy {
-  if element.has_attribute("mx-sync") {
-    @network.parse_sync_strategy(element.get_attribute("mx-sync"))
-  } else {
-    @network.SyncStrategy::Drop // default
+fn get_sync_strategy(
+  element : @ffi.Element,
+  config : @event.ElementConfig,
+) -> @network.SyncStrategy {
+  match config.sync {
+    Some(strategy) => strategy
+    None =>
+      if element.has_attribute("mx-sync") {
+        @network.parse_sync_strategy(element.get_attribute("mx-sync"))
+      } else {
+        @network.SyncStrategy::Drop
+      }
   }
 }
 
@@ -436,41 +486,61 @@ fn Mhx::execute_request(
   element : @ffi.Element,
   task : @network.RequestTask,
   config : @event.ElementConfig,
+  trigger : @trigger.TriggerDef,
 ) -> Unit {
-  // In a real implementation, this would be async
-  // For now, we'll set up the structure for future async support
-  // The actual fetch would be called here and the response handled below
-
-  // This is a placeholder - actual implementation would use:
-  // let promise = @ffi.js_fetch(task.url, task.options.to_json_string())
-  // And then handle the promise resolution
-
-  // For now, log that we would make a request
-  @ffi.console_log(
-    "mhx: Would request " + task.options.http_method + " " + task.url,
+  let _callback_id = @network.fetch_async(
+    task.url,
+    task.options,
+    fn(response) {
+      self.handle_response(element, task, config, trigger, response)
+    },
+    fn(error_message) {
+      element.remove_class("mx-request")
+      report_error(network_error(task.url, error_message))
+      self.finish_request(element, task, config, trigger)
+    },
   )
-  // Remove loading indicator (in real impl, this happens after response)
+}
+
+///|
+/// Handle a completed response
+fn Mhx::handle_response(
+  self : Mhx,
+  element : @ffi.Element,
+  task : @network.RequestTask,
+  config : @event.ElementConfig,
+  trigger : @trigger.TriggerDef,
+  response : @network.Response,
+) -> Unit {
   element.remove_class("mx-request")
-  // The response handling logic:
-  // 1. Parse response body as HTML
-  // 2. Find target element (self or mx-target)
-  // 3. Perform swap operation
+  if response.ok() {
+    let swap_target = resolve_swap_target_from_trigger(element, trigger, config)
+    let swap_options = get_swap_options(element, config)
+    @swap.perform_swap(swap_target, response.text(), swap_options)
+    self.process_tree(swap_target)
+  } else {
+    let message = response.status().to_string() + " " + response.status_text()
+    report_error(network_error(task.url, message))
+  }
+  self.finish_request(element, task, config, trigger)
+}
 
-  // Placeholder for swap target resolution
-  let _swap_target = resolve_swap_target(element, config)
-  let _swap_options = get_swap_options(element, config)
-  // In real implementation:
-  // @swap.perform_swap(swap_target, response_body, swap_options)
-
-  // Complete the request in the manager
+///|
+/// Complete a request and execute the next queued task
+fn Mhx::finish_request(
+  self : Mhx,
+  element : @ffi.Element,
+  task : @network.RequestTask,
+  config : @event.ElementConfig,
+  trigger : @trigger.TriggerDef,
+) -> Unit {
   let element_hash = hash_element(element)
   let element_id = self.cache.get_element_id(element_hash)
-  let _next = self.request_manager.complete(element_id, task.id)
-  // If there's a next request, execute it
-  // match next {
-  //   Some(next_task) => self.execute_request(element, next_task, config)
-  //   None => ()
-  // }
+  let next = self.request_manager.complete(element_id, task.id)
+  match next {
+    Some(next_task) => self.execute_request(element, next_task, config, trigger)
+    None => ()
+  }
 }
 
 ///|
@@ -562,4 +632,23 @@ pub fn process(root : @ffi.Element) -> Unit {
 /// This is the main entry point called from the JS event listener
 pub fn handle_event(event : @ffi.Event, target : @ffi.Element) -> Unit {
   global_mhx.handle_event(event, target)
+}
+
+///|
+/// Register default event listeners on the document
+fn register_default_event_listeners() -> Unit {
+  let doc = @ffi.document()
+  for event_type in @event.default_events {
+    doc.add_event_listener(
+      event_type,
+      fn(event) {
+        if event.has_target() {
+          let target = event.target_ffi()
+          if not(target.is_null()) {
+            handle_event(event, target)
+          }
+        }
+      },
+    )
+  }
 }

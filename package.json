@@ -1,0 +1,15 @@
+{
+  "name": "@f4ah6o/mhx",
+  "version": "0.1.0",
+  "type": "module",
+  "exports": "./npm/index.js",
+  "files": [
+    "dist",
+    "npm",
+    "LICENSE",
+    "README.mbt.md"
+  ],
+  "scripts": {
+    "build": "moon build --target js"
+  }
+}

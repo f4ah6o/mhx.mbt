@@ -91,6 +91,10 @@ pub fn fetch_async(
   on_error : (String) -> Unit,
 ) -> Int {
   let callback_id = register_callbacks({ on_success, }, { on_error, })
+  if callback_id < 0 {
+    on_fetch_success(callback_id, "")
+    on_fetch_error(callback_id, "")
+  }
   // Create the fetch and register JS-side callbacks
   let json_options = options.to_json_string()
   // This FFI function will call on_fetch_success/on_fetch_error when done

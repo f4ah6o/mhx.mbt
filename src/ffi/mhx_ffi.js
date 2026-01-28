@@ -21,6 +21,50 @@ export function initMhxFfi(module) {
   mbtModule = module;
 }
 
+// Register public exports and callback hooks from MoonBit runtime
+export function register_exports(
+  init_mhx,
+  process,
+  handle_event,
+  version,
+  on_fetch_success,
+  on_fetch_error,
+  on_mutation_observed
+) {
+  globalThis.mhx = {
+    init_mhx,
+    process,
+    handle_event,
+    version,
+  };
+  mbtModule = {
+    on_fetch_success,
+    on_fetch_error,
+    on_mutation_observed,
+  };
+}
+
+// Internal: allow MoonBit code to register exports via FFI
+export function mhx_register_exports(
+  initMhx,
+  processFn,
+  handleEvent,
+  versionStr,
+  onFetchSuccess,
+  onFetchError,
+  onMutationObserved
+) {
+  register_exports(
+    initMhx,
+    processFn,
+    handleEvent,
+    versionStr,
+    onFetchSuccess,
+    onFetchError,
+    onMutationObserved
+  );
+}
+
 // ============================================================================
 // Document and Window
 // ============================================================================
@@ -166,7 +210,7 @@ export function element_remove_attribute(elem, name) {
 }
 
 export function element_has_attribute(elem, name) {
-  return elem.hasAttribute(name);
+  return !!(elem && elem.hasAttribute && elem.hasAttribute(name));
 }
 
 export function element_add_class(elem, className) {
@@ -546,13 +590,15 @@ export function initiate_fetch(url, optionsJson, callbackId) {
   window.fetch(url, { ...options, signal: controller.signal })
     .then(async (response) => {
       const text = await response.text();
-      if (mbtModule && fetchCallbacks.has(callbackId)) {
-        mbtModule.on_fetch_success(callbackId, text);
+      const callbacks = mbtModule || globalThis.mhx_callbacks;
+      if (callbacks && fetchCallbacks.has(callbackId)) {
+        callbacks.on_fetch_success(callbackId, text);
       }
     })
     .catch((error) => {
-      if (mbtModule && fetchCallbacks.has(callbackId)) {
-        mbtModule.on_fetch_error(callbackId, error.message);
+      const callbacks = mbtModule || globalThis.mhx_callbacks;
+      if (callbacks && fetchCallbacks.has(callbackId)) {
+        callbacks.on_fetch_error(callbackId, error.message);
       }
     })
     .finally(() => {
@@ -592,8 +638,9 @@ export function mutation_observer_new(callbackId) {
     // Store mutations for retrieval
     mutationRecordsMap.set(callbackId, mutations);
     // Notify MoonBit
-    if (mbtModule) {
-      mbtModule.on_mutation_observed(callbackId);
+    const callbacks = mbtModule || globalThis.mhx_callbacks;
+    if (callbacks) {
+      callbacks.on_mutation_observed(callbackId);
     }
   });
   mutationCallbacks.set(callbackId, observer);

@@ -47,6 +47,7 @@ pub fn Mhx::init_mhx(self : Mhx) -> Unit {
   if self.initialized {
     return
   }
+  let _ = on_mutation_observed
   self.initialized = true
   // Process existing elements with mx-* attributes
   let doc = @ffi.document()
@@ -104,6 +105,9 @@ fn Mhx::setup_mutation_observer(self : Mhx, root : @ffi.Element) -> Unit {
   // Register callback for mutation events
   let callback_id = register_mutation_callback()
   self.observer_callback_id = callback_id
+  if callback_id < 0 {
+    on_mutation_observed(callback_id)
+  }
   // Create the observer
   let observer = @ffi.MutationObserver::new_ffi(callback_id)
   // Observe the root for child additions with subtree
@@ -368,7 +372,7 @@ fn Mhx::execute_action(
     event.prevent_default()
   }
   // Determine the URL and method
-  let url = config.url
+  let url = build_request_url(element, config)
   if url.is_empty() {
     return
   }
@@ -386,6 +390,7 @@ fn Mhx::execute_action(
     @network.ScheduleResult::Execute(task) => {
       // Add loading indicator
       element.add_class("mx-request")
+      maybe_push_url(element, url)
       // Execute the request
       self.execute_request(element, task, config, trigger)
     }
@@ -396,6 +401,43 @@ fn Mhx::execute_action(
       // Request was dropped due to sync strategy
       ()
   }
+}
+
+///|
+/// Build request URL (append form data for GET requests)
+fn build_request_url(
+  element : @ffi.Element,
+  config : @event.ElementConfig,
+) -> String {
+  let url = config.url
+  match config.http_method {
+    @event.HttpMethod::Get => {
+      let query = build_request_body(element, config)
+      if query.is_empty() {
+        url
+      } else if url.contains("?") {
+        url + "&" + query
+      } else {
+        url + "?" + query
+      }
+    }
+    _ => url
+  }
+}
+
+///|
+/// Push URL to history if mx-push-url is enabled
+fn maybe_push_url(element : @ffi.Element, url : String) -> Unit {
+  if not(element.has_attribute("mx-push-url")) {
+    return
+  }
+  let raw = element.get_attribute("mx-push-url").trim().to_string()
+  if raw == "false" {
+    return
+  }
+  let push_url = if raw.is_empty() || raw == "true" { url } else { raw }
+  let win = @ffi.window()
+  win.history_push_state(push_url, "")
 }
 
 ///|

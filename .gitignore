@@ -5,3 +5,5 @@ target
 .mooncakes/
 .moonagent/
 .jj/.opencode/
+dist/
+node_modules/

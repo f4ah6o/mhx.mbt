@@ -1,3 +1,4 @@
 import {
   "f4ah6o/mhx/ffi" as @ffi,
+  "f4ah6o/mhx-spec/swap" as @swap_spec,
 }

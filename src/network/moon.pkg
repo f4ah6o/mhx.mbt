@@ -1,4 +1,5 @@
 import {
   "f4ah6o/mhx/ffi" as @ffi,
+  "f4ah6o/mhx-spec/sync" as @sync,
   "moonbitlang/async" as @async,
 }

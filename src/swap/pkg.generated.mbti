@@ -1,12 +1,12 @@
 // Generated using `moon info`, DON'T EDIT IT
 package "f4ah6o/mhx/swap"
 
-import(
-  "f4ah6o/mhx/ffi"
-)
+import {
+  "f4ah6o/mhx/ffi",
+}
 
 // Values
-pub fn perform_swap(@ffi.Element, String, SwapOptions) -> Unit
+pub fn perform_swap(@ffi.Element, String, @f4ah6o/mhx-spec/swap.SwapOptions) -> Unit
 
 pub fn swap_inner_html(@ffi.Element, String) -> Unit
 
@@ -15,32 +15,6 @@ pub fn swap_outer_html(@ffi.Element, String) -> Unit
 // Errors
 
 // Types and methods
-pub(all) enum Strategy {
-  InnerHTML
-  OuterHTML
-  BeforeBegin
-  AfterBegin
-  BeforeEnd
-  AfterEnd
-  Delete
-  None_
-}
-pub fn Strategy::from_string(String) -> Self
-pub impl Eq for Strategy
-pub impl Show for Strategy
-
-pub(all) struct SwapOptions {
-  strategy : Strategy
-  swap_delay : Int
-  settle_delay : Int
-  scroll : String
-  show : String
-  focus_scroll : Bool
-}
-pub fn SwapOptions::default() -> Self
-pub fn SwapOptions::parse(String) -> Self
-pub fn SwapOptions::with_strategy(Strategy) -> Self
-pub impl Show for SwapOptions
 
 // Type aliases
 

@@ -4,7 +4,7 @@
 
 ///|
 /// Event handler callback type
-pub struct EventHandler {
+pub(all) struct EventHandler {
   handle : (MhxEvent) -> Unit
 }
 

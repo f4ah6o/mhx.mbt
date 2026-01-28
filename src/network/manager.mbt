@@ -3,26 +3,8 @@
 /// Implements hx-sync equivalent functionality
 
 ///|
-/// Sync strategies for request coordination
-pub(all) enum SyncStrategy {
-  /// Drop new requests if one is already in flight
-  Drop
-  /// Cancel existing request and start new one
-  Replace
-  /// Queue requests to run sequentially
-  Queue(QueueBehavior)
-} derive(Show, Eq)
-
-///|
-/// Queue behavior options
-pub(all) enum QueueBehavior {
-  /// First in, first out
-  First
-  /// Last in, first out (drop intermediate)
-  Last
-  /// Allow all in order
-  All
-} derive(Show, Eq)
+/// Sync strategy alias for runtime scheduling
+type SyncStrategy = @sync.SyncStrategy
 
 ///|
 /// A request task with metadata
@@ -90,12 +72,6 @@ fn RequestQueue::new() -> RequestQueue {
 }
 
 ///|
-/// Check if queue is empty (no current or pending)
-fn RequestQueue::is_empty(self : RequestQueue) -> Bool {
-  self.current is None && self.pending.is_empty()
-}
-
-///|
 /// Check if there's a request in flight
 fn RequestQueue::is_busy(self : RequestQueue) -> Bool {
   self.current is Some(_)
@@ -159,7 +135,7 @@ pub fn RequestManager::schedule(
   let queue = self.get_queue(element_id)
   let task = RequestTask::new(task_id, element_id, url, options, strategy)
   match strategy {
-    Drop =>
+    @sync.SyncStrategy::Drop =>
       // Only execute if no request is in flight
       if queue.is_busy() {
         ScheduleResult::Dropped
@@ -167,7 +143,7 @@ pub fn RequestManager::schedule(
         queue.current = Some(task)
         ScheduleResult::Execute(task)
       }
-    Replace => {
+    @sync.SyncStrategy::Replace => {
       // Cancel existing and start new
       match queue.current {
         Some(current) => current.cancel()
@@ -178,22 +154,22 @@ pub fn RequestManager::schedule(
       queue.current = Some(task)
       ScheduleResult::Execute(task)
     }
-    Queue(behavior) =>
+    @sync.SyncStrategy::Queue(behavior) =>
       if queue.is_busy() {
         // Queue based on behavior
         match behavior {
-          First => {
+          @sync.QueueMode::First => {
             // Add to end of queue
             queue.pending.push(task)
             ScheduleResult::Queued
           }
-          Last => {
+          @sync.QueueMode::Last => {
             // Replace any pending with just this one
             queue.pending.clear()
             queue.pending.push(task)
             ScheduleResult::Queued
           }
-          All => {
+          @sync.QueueMode::All => {
             // Add to queue
             queue.pending.push(task)
             ScheduleResult::Queued
@@ -275,19 +251,4 @@ pub fn RequestManager::clear(self : RequestManager) -> Unit {
   }
   self.queues.clear()
   self.next_id = 1
-}
-
-///|
-/// Parse sync strategy from attribute value
-pub fn parse_sync_strategy(value : String) -> SyncStrategy {
-  let v = value.to_lower().trim().to_string()
-  match v {
-    "drop" => SyncStrategy::Drop
-    "replace" => SyncStrategy::Replace
-    "queue" | "queue first" | "queue:first" =>
-      SyncStrategy::Queue(QueueBehavior::First)
-    "queue last" | "queue:last" => SyncStrategy::Queue(QueueBehavior::Last)
-    "queue all" | "queue:all" => SyncStrategy::Queue(QueueBehavior::All)
-    _ => SyncStrategy::Drop // default
-  }
 }

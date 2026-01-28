@@ -1,6 +1,7 @@
 import {
   "f4ah6o/mhx/ffi" as @ffi,
-  "f4ah6o/mhx/trigger" as @trigger,
-  "f4ah6o/mhx/parser" as @parser,
-  "f4ah6o/mhx/network" as @network,
+  "f4ah6o/mhx-spec/trigger" as @trigger,
+  "f4ah6o/mhx-spec/parser" as @parser,
+  "f4ah6o/mhx-spec/swap" as @swap_spec,
+  "f4ah6o/mhx-spec/sync" as @sync,
 }

@@ -1,11 +1,13 @@
 // Generated using `moon info`, DON'T EDIT IT
 package "f4ah6o/mhx/event"
 
-import(
-  "f4ah6o/mhx/ffi"
-  "f4ah6o/mhx/parser"
-  "f4ah6o/mhx/trigger"
-)
+import {
+  "f4ah6o/mhx-spec/parser",
+  "f4ah6o/mhx-spec/swap",
+  "f4ah6o/mhx-spec/sync",
+  "f4ah6o/mhx-spec/trigger",
+  "f4ah6o/mhx/ffi",
+}
 
 // Values
 pub fn apply_debounce(TimingState, Int, () -> Unit) -> Unit
@@ -30,8 +32,6 @@ pub fn parse_element_config(@ffi.Element) -> ElementConfig raise @parser.ParseEr
 
 pub fn parse_http_method(String) -> HttpMethod
 
-pub fn parse_swap_strategy(String) -> SwapStrategy
-
 pub fn trigger_matches_event(@trigger.TriggerDef, String) -> Bool
 
 // Errors
@@ -51,8 +51,10 @@ pub(all) struct ElementConfig {
   triggers : Array[@trigger.TriggerDef]
   http_method : HttpMethod
   url : String
-  swap : SwapStrategy
+  swap : @swap.Strategy
   target : String?
+  sync : @sync.SyncStrategy?
+  vals : String?
   processed : Bool
 }
 pub fn ElementConfig::default() -> Self
@@ -75,7 +77,7 @@ pub fn EventDelegator::register_defaults(Self) -> Unit
 pub fn EventDelegator::register_event(Self, String) -> Unit
 pub fn EventDelegator::set_active(Self, Bool) -> Unit
 
-pub struct EventHandler {
+pub(all) struct EventHandler {
   handle : (MhxEvent) -> Unit
 }
 
@@ -96,20 +98,6 @@ pub(all) struct MhxEvent {
   config : ElementConfig
   trigger : @trigger.TriggerDef
 }
-
-pub(all) enum SwapStrategy {
-  InnerHTML
-  OuterHTML
-  BeforeBegin
-  AfterBegin
-  BeforeEnd
-  AfterEnd
-  Delete
-  None_
-}
-pub impl Eq for SwapStrategy
-pub impl Show for SwapStrategy
-pub impl ToJson for SwapStrategy
 
 pub struct TimingManager {
   states : Map[String, TimingState]

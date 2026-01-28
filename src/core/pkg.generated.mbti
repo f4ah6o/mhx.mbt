@@ -1,12 +1,12 @@
 // Generated using `moon info`, DON'T EDIT IT
 package "f4ah6o/mhx/core"
 
-import(
-  "f4ah6o/mhx/event"
-  "f4ah6o/mhx/ffi"
-  "f4ah6o/mhx/network"
-  "f4ah6o/mhx/parser"
-)
+import {
+  "f4ah6o/mhx-spec/parser",
+  "f4ah6o/mhx/event",
+  "f4ah6o/mhx/ffi",
+  "f4ah6o/mhx/network",
+}
 
 // Values
 pub fn abort_error(String) -> MhxError
@@ -24,6 +24,8 @@ pub fn get_instance() -> Mhx
 pub fn handle_event(@ffi.Event, @ffi.Element) -> Unit
 
 pub fn init_mhx() -> Unit
+
+pub fn merge_request_bodies(String, String) -> String
 
 pub fn network_error(String, String) -> MhxError
 
@@ -64,6 +66,7 @@ pub struct Mhx {
   request_manager : @network.RequestManager
   cache : @event.ConfigCache
   timing : @event.TimingManager
+  changed_values : Map[Int, String]
   mut initialized : Bool
   mut observer : @ffi.MutationObserver?
   mut observer_callback_id : Int

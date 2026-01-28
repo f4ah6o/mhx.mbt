@@ -64,9 +64,9 @@ pub fn parse_element_config(
   let triggers = @parser.parse_trigger(trigger_str)
   // Parse swap strategy
   let swap = if element.has_attribute("mx-swap") {
-    parse_swap_strategy(element.get_attribute("mx-swap"))
+    @swap_spec.Strategy::from_string(element.get_attribute("mx-swap"))
   } else {
-    SwapStrategy::InnerHTML
+    @swap_spec.Strategy::InnerHTML
   }
   // Parse target
   let target = if element.has_attribute("mx-target") {
@@ -75,7 +75,7 @@ pub fn parse_element_config(
     None
   }
   let sync = if element.has_attribute("mx-sync") {
-    Some(@network.parse_sync_strategy(element.get_attribute("mx-sync")))
+    Some(@sync.parse_sync_strategy(element.get_attribute("mx-sync")))
   } else {
     None
   }

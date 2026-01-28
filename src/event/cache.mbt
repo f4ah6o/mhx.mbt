@@ -12,11 +12,11 @@ pub(all) struct ElementConfig {
   /// The URL to request
   url : String
   /// The swap strategy to use
-  swap : SwapStrategy
+  swap : @swap_spec.Strategy
   /// Target selector (if specified)
   target : String?
   /// Sync strategy override (if specified)
-  sync : @network.SyncStrategy?
+  sync : @sync.SyncStrategy?
   /// Raw mx-vals JSON string (if specified)
   vals : String?
   /// Whether this config has been processed
@@ -34,19 +34,6 @@ pub(all) enum HttpMethod {
 } derive(Show, Eq)
 
 ///|
-/// Swap strategies for DOM updates
-pub(all) enum SwapStrategy {
-  InnerHTML
-  OuterHTML
-  BeforeBegin
-  AfterBegin
-  BeforeEnd
-  AfterEnd
-  Delete
-  None_
-} derive(Show, Eq)
-
-///|
 pub impl ToJson for HttpMethod with to_json(self) {
   match self {
     Get => "GET".to_json()
@@ -58,26 +45,12 @@ pub impl ToJson for HttpMethod with to_json(self) {
 }
 
 ///|
-pub impl ToJson for SwapStrategy with to_json(self) {
-  match self {
-    InnerHTML => "innerHTML".to_json()
-    OuterHTML => "outerHTML".to_json()
-    BeforeBegin => "beforebegin".to_json()
-    AfterBegin => "afterbegin".to_json()
-    BeforeEnd => "beforeend".to_json()
-    AfterEnd => "afterend".to_json()
-    Delete => "delete".to_json()
-    None_ => "none".to_json()
-  }
-}
-
-///|
 pub impl ToJson for ElementConfig with to_json(self) {
   {
     "triggers": self.triggers.to_json(),
     "method": self.http_method.to_json(),
     "url": self.url.to_json(),
-    "swap": self.swap.to_json(),
+    "swap": self.swap.to_string().to_json(),
     "target": match self.target {
       Some(t) => t.to_json()
       Option::None => Json::null()
@@ -101,7 +74,7 @@ pub fn ElementConfig::default() -> ElementConfig {
     triggers: [],
     http_method: HttpMethod::Get,
     url: "",
-    swap: SwapStrategy::InnerHTML,
+    swap: @swap_spec.Strategy::InnerHTML,
     target: Option::None,
     sync: Option::None,
     vals: Option::None,
@@ -194,21 +167,5 @@ pub fn parse_http_method(s : String) -> HttpMethod {
     "PATCH" => HttpMethod::Patch
     "DELETE" => HttpMethod::Delete
     _ => HttpMethod::Get
-  }
-}
-
-///|
-/// Parse swap strategy from string
-pub fn parse_swap_strategy(s : String) -> SwapStrategy {
-  match s.to_lower() {
-    "innerhtml" => SwapStrategy::InnerHTML
-    "outerhtml" => SwapStrategy::OuterHTML
-    "beforebegin" => SwapStrategy::BeforeBegin
-    "afterbegin" => SwapStrategy::AfterBegin
-    "beforeend" => SwapStrategy::BeforeEnd
-    "afterend" => SwapStrategy::AfterEnd
-    "delete" => SwapStrategy::Delete
-    "none" => SwapStrategy::None_
-    _ => SwapStrategy::InnerHTML
   }
 }

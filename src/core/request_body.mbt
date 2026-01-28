@@ -3,7 +3,10 @@
 
 ///|
 /// Build request body from form data and mx-vals
-fn build_request_body(element : @ffi.Element, config : @event.ElementConfig) -> String {
+fn build_request_body(
+  element : @ffi.Element,
+  config : @event.ElementConfig,
+) -> String {
   let form_values = if element.tag_name() == "FORM" {
     collect_form_data(element)
   } else if element.closest_exists("form") {
@@ -31,6 +34,28 @@ fn build_request_body(element : @ffi.Element, config : @event.ElementConfig) -> 
     }
   }
   for item in json_pairs {
+    pairs.push(item)
+  }
+  if pairs.is_empty() {
+    ""
+  } else {
+    encode_form_pairs(pairs)
+  }
+}
+
+///|
+/// Merge form-encoded body with mx-vals JSON
+pub fn merge_request_bodies(
+  form_body : String,
+  mx_vals_json : String,
+) -> String {
+  let pairs : Array[(String, String)] = []
+  if not(form_body.is_empty()) {
+    for item in parse_form_encoded(form_body) {
+      pairs.push(item)
+    }
+  }
+  for item in parse_mx_vals_pairs(mx_vals_json) {
     pairs.push(item)
   }
   if pairs.is_empty() {
@@ -95,7 +120,9 @@ fn parse_mx_vals_pairs(mx_vals_json : String) -> Array[(String, String)] {
     report_error(config_error("mx-vals", "expected JSON object"))
     return pairs
   }
-  let inner = trimmed.view(start_offset=1, end_offset=trimmed.length() - 1).to_string()
+  let inner = trimmed
+    .view(start_offset=1, end_offset=trimmed.length() - 1)
+    .to_string()
   if inner.trim().is_empty() {
     return pairs
   }
@@ -103,7 +130,11 @@ fn parse_mx_vals_pairs(mx_vals_json : String) -> Array[(String, String)] {
     match part.find(":") {
       Some(idx) => {
         let raw_key = part.view(end_offset=idx).to_string().trim().to_string()
-        let raw_val = part.view(start_offset=idx + 1).to_string().trim().to_string()
+        let raw_val = part
+          .view(start_offset=idx + 1)
+          .to_string()
+          .trim()
+          .to_string()
         let key = match parse_json_string(raw_key) {
           Some(k) => k
           None => {
@@ -324,7 +355,10 @@ fn json_object_string(values : Map[String, String]) -> String {
     sb.write_char('"')
     sb.write_string(escape_json_string(key))
     sb.write_string("\":")
-    if value == "true" || value == "false" || value == "null" || is_number_literal(value) {
+    if value == "true" ||
+      value == "false" ||
+      value == "null" ||
+      is_number_literal(value) {
       sb.write_string(value)
     } else {
       sb.write_char('"')

@@ -91,7 +91,7 @@ event[filter] modifier:value, event2[filter2]
 - `target:selector` - Specify action target
 - `consume` - Stop event propagation
 - `prevent` - Prevent default behavior
-- `queue:mode` - Request queue mode (`drop`, `replace`, `first`, `last`, `all`)
+- `queue:mode` - Request queue mode (`drop`, `replace`, `first`, `last`, `all`). Example: `queue all`.
 
 **Filters:**
 - `[ctrlKey]` - Require Ctrl key
@@ -129,10 +129,6 @@ src/
 |   +-- element.mbt, document.mbt, event.mbt
 |   +-- fetch.mbt, mutation_observer.mbt
 |   +-- mhx_ffi.js  # JS glue code
-+-- trigger/       # Trigger AST definitions
-|   +-- ast.mbt, modifier.mbt, selector.mbt
-+-- parser/        # Trigger parser
-|   +-- scanner.mbt, parser.mbt, error.mbt
 +-- event/         # Event system
 |   +-- delegation.mbt, cache.mbt, handler.mbt, timing.mbt
 +-- network/       # HTTP layer
@@ -141,6 +137,8 @@ src/
 +-- core/          # Main integration
     +-- mhx.mbt, error.mbt
 ```
+
+Shared specification types and parsers now live in `mhx-spec.mbt/`.
 
 ### Key Components
 
@@ -280,3 +278,21 @@ This architecture keeps all your code in MoonBit while following HATEOAS princip
 ## License
 
 Apache-2.0
+## npm Distribution
+
+The JavaScript runtime can be packaged for npm with the compiled output in `dist/`.
+
+1. Build the JS runtime:
+
+```bash
+moon -C mhx.mbt build --target js
+```
+
+2. Copy the JS output and FFI into `dist/`:
+
+- `dist/index.js` (compiled output)
+- `dist/mhx_ffi.js` (FFI glue)
+
+3. Use the npm wrapper entry:
+
+- `npm/index.js` initializes the FFI via `initMhxFfi` and re-exports the public API.

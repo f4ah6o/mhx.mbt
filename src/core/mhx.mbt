@@ -282,7 +282,8 @@ pub fn Mhx::handle_event(
               // Check filter conditions
               if @event.check_filter_conditions(trigger, event) {
                 // Apply changed modifier for input-like events
-                if trigger.is_changed() && not(self.is_value_changed(current, trigger_index)) {
+                if trigger.is_changed() &&
+                  not(self.is_value_changed(current, trigger_index)) {
                   continue
                 }
                 // Get timing state for this element/trigger combination
@@ -339,14 +340,13 @@ fn Mhx::is_value_changed(
   let key = element_id * 100000 + trigger_index
   let current = element.value()
   match self.changed_values.get(key) {
-    Some(prev) => {
+    Some(prev) =>
       if prev == current {
         false
       } else {
         self.changed_values[key] = current
         true
       }
-    }
     None => {
       self.changed_values[key] = current
       true
@@ -467,14 +467,14 @@ fn collect_form_data(form : @ffi.Element) -> String {
 fn get_sync_strategy(
   element : @ffi.Element,
   config : @event.ElementConfig,
-) -> @network.SyncStrategy {
+) -> @sync.SyncStrategy {
   match config.sync {
     Some(strategy) => strategy
     None =>
       if element.has_attribute("mx-sync") {
-        @network.parse_sync_strategy(element.get_attribute("mx-sync"))
+        @sync.parse_sync_strategy(element.get_attribute("mx-sync"))
       } else {
-        @network.SyncStrategy::Drop
+        @sync.SyncStrategy::Drop
       }
   }
 }
@@ -500,6 +500,7 @@ fn Mhx::execute_request(
       self.finish_request(element, task, config, trigger)
     },
   )
+
 }
 
 ///|
@@ -585,22 +586,11 @@ fn resolve_swap_target(
 fn get_swap_options(
   element : @ffi.Element,
   config : @event.ElementConfig,
-) -> @swap.SwapOptions {
+) -> @swap_spec.SwapOptions {
   if element.has_attribute("mx-swap") {
-    @swap.SwapOptions::parse(element.get_attribute("mx-swap"))
+    @swap_spec.SwapOptions::parse(element.get_attribute("mx-swap"))
   } else {
-    // Convert from config
-    let strategy = match config.swap {
-      @event.SwapStrategy::InnerHTML => @swap.Strategy::InnerHTML
-      @event.SwapStrategy::OuterHTML => @swap.Strategy::OuterHTML
-      @event.SwapStrategy::BeforeBegin => @swap.Strategy::BeforeBegin
-      @event.SwapStrategy::AfterBegin => @swap.Strategy::AfterBegin
-      @event.SwapStrategy::BeforeEnd => @swap.Strategy::BeforeEnd
-      @event.SwapStrategy::AfterEnd => @swap.Strategy::AfterEnd
-      @event.SwapStrategy::Delete => @swap.Strategy::Delete
-      @event.SwapStrategy::None_ => @swap.Strategy::None_
-    }
-    @swap.SwapOptions::with_strategy(strategy)
+    @swap_spec.SwapOptions::with_strategy(config.swap)
   }
 }
 
@@ -639,16 +629,13 @@ pub fn handle_event(event : @ffi.Event, target : @ffi.Element) -> Unit {
 fn register_default_event_listeners() -> Unit {
   let doc = @ffi.document()
   for event_type in @event.default_events {
-    doc.add_event_listener(
-      event_type,
-      fn(event) {
-        if event.has_target() {
-          let target = event.target_ffi()
-          if not(target.is_null()) {
-            handle_event(event, target)
-          }
+    doc.add_event_listener(event_type, fn(event) {
+      if event.has_target() {
+        let target = event.target_ffi()
+        if not(target.is_null()) {
+          handle_event(event, target)
         }
-      },
-    )
+      }
+    })
   }
 }

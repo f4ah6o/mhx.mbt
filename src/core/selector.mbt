@@ -16,7 +16,10 @@ fn resolve_swap_target_from_trigger(
 
 ///|
 /// Resolve a trigger selector to an element
-fn resolve_selector(element : @ffi.Element, selector : @trigger.Selector) -> @ffi.Element {
+fn resolve_selector(
+  element : @ffi.Element,
+  selector : @trigger.Selector,
+) -> @ffi.Element {
   match selector {
     @trigger.Selector::This => element
     @trigger.Selector::Body => @ffi.document().body_ffi()
@@ -35,7 +38,8 @@ fn resolve_selector(element : @ffi.Element, selector : @trigger.Selector) -> @ff
         element
       }
     @trigger.Selector::Next(sel) => find_adjacent_sibling(element, sel, true)
-    @trigger.Selector::Previous(sel) => find_adjacent_sibling(element, sel, false)
+    @trigger.Selector::Previous(sel) =>
+      find_adjacent_sibling(element, sel, false)
     @trigger.Selector::Css(sel) => {
       let doc = @ffi.document()
       if doc.query_selector_exists(sel) {

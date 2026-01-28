@@ -83,6 +83,7 @@ pub fn Element::query_selector_ffi(Self, String) -> Self
 pub fn Element::remove(Self) -> Unit
 pub fn Element::remove_attribute(Self, String) -> Unit
 pub fn Element::remove_class(Self, String) -> Unit
+pub fn Element::same(Self, Self) -> Bool
 pub fn Element::set_attribute(Self, String, String) -> Unit
 pub fn Element::set_id(Self, String) -> Unit
 pub fn Element::set_inner_html(Self, String) -> Unit
@@ -103,6 +104,7 @@ pub fn Event::as_submit_event(Self) -> SubmitEvent
 pub fn Event::cancel_bubble(Self) -> Bool
 pub fn Event::current_target_ffi(Self) -> Element
 pub fn Event::default_prevented(Self) -> Bool
+pub fn Event::eval_filter(Self, String) -> Bool
 pub fn Event::has_target(Self) -> Bool
 pub fn Event::is_trusted(Self) -> Bool
 pub fn Event::prevent_default(Self) -> Unit

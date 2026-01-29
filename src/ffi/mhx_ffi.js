@@ -487,7 +487,8 @@ export function submit_event_has_submitter(event) {
 // ============================================================================
 
 export function fetch(url, optionsJson) {
-  const options = JSON.parse(optionsJson);
+  const options =
+    typeof optionsJson === "string" ? JSON.parse(optionsJson) : optionsJson;
   return window.fetch(url, options);
 }
 

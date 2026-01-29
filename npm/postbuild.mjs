@@ -9,6 +9,10 @@ const buildFfi = join(root, "src/ffi/mhx_ffi.js");
 mkdirSync(distDir, { recursive: true });
 
 let mainJs = readFileSync(buildMain, "utf8");
+const ffiHeader = 'import mhxFfi from "./mhx_ffi.js";\nconst mhx_ffi = mhxFfi;\n';
+if (!mainJs.startsWith('import mhxFfi from "./mhx_ffi.js";')) {
+  mainJs = ffiHeader + mainJs;
+}
 mainJs = mainJs.replace(
   /\(\(\)\s*=>\s*\{[\s\S]*?moonbitlang\$async\$\$run_async_main[\s\S]*?\}\)\(\);/g,
   "",

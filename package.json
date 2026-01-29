@@ -1,8 +1,11 @@
 {
   "name": "mhx",
-  "version": "2026.1.2",
+  "version": "2026.1.3",
   "type": "module",
-  "exports": "./npm/index.js",
+  "exports": {
+    ".": "./npm/index.js",
+    "./ffi": "./dist/mhx_ffi.js"
+  },
   "files": [
     "dist",
     "npm",
@@ -11,7 +14,7 @@
   ],
   "scripts": {
     "build:moon": "moon fmt && moon check && moon test && moon build --target js",
-    "build": "pnpm build:moon && mkdir -p dist && cp _build/js/release/build/main/main.js dist/index.js && cp src/ffi/mhx_ffi.js dist/mhx_ffi.js"
+    "build": "pnpm build:moon && node npm/postbuild.mjs"
   },
   "license": "Apache-2.0",
   "repository": {

@@ -23,6 +23,18 @@ pub fn on_mutation_observed(callback_id : Int) -> Unit {
 }
 
 ///|
+let _keep_process : (@ffi.Element) -> Unit = @core.process
+
+///|
+let _keep_handle_event : (@ffi.Event, @ffi.Element) -> Unit = @core.handle_event
+
+///|
+let _keep_get_instance : () -> @core.Mhx = @core.get_instance
+
+///|
+let _keep_version : String = @mhx.version
+
+///|
 async fn main {
   @core.init_mhx()
 }

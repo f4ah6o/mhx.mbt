@@ -16,7 +16,11 @@ mkdirSync(distDir, { recursive: true });
 const rawMainJs = readFileSync(buildMain, "utf8");
 const packageJson = JSON.parse(readFileSync(join(root, "package.json"), "utf8"));
 const packageVersion = String(packageJson.version ?? "0.0.0");
-let esmMainJs = rawMainJs;
+
+const autorunRe =
+  /\(\(\)\s*=>\s*\{\s*moonbitlang\$async\$\$run_async_main\([\s\S]*?\);\s*\}\)\(\);\s*/;
+const rawMainJsNoAutorun = rawMainJs.replace(autorunRe, "");
+let esmMainJs = rawMainJsNoAutorun;
 const ffiHeader =
   'import mhxFfi from "./mhx_ffi.js";\nconst mhx_ffi = mhxFfi;\n';
 const stableExports = `
@@ -48,6 +52,6 @@ if (!hasStableExports) {
 if (!esmMainJs.includes("export const init_mhx")) {
   esmMainJs += `\n${exportsBlock}`;
 }
-writeFileSync(join(distDir, "index.js"), rawMainJs);
+writeFileSync(join(distDir, "index.js"), rawMainJsNoAutorun);
 writeFileSync(join(distDir, "index.mjs"), esmMainJs);
 copyFileSync(buildFfi, join(distDir, "mhx_ffi.js"));

@@ -7,7 +7,7 @@
     "dist",
     "npm",
     "LICENSE",
-    "README.mbt.md"
+    "README.md"
   ],
   "scripts": {
     "build:moon": "moon fmt && moon check && moon test && moon build --target js",

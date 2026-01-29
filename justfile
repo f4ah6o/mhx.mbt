@@ -43,8 +43,8 @@ release-check: clean fmt info check test
 build: release-check
     pnpm build
 
-# Release new version
-release : release-check
-    version=$(node -p "require('./package.json').version"); \   
+# Release new version (tag + push)
+release: release-check
+    version=$(node -p "require('./package.json').version"); \
     git tag "v${version}"; \
-    git push origin "v${version}"; \
+    git push origin "v${version}"

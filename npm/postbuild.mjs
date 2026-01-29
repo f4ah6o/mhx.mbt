@@ -9,6 +9,14 @@ const buildFfi = join(root, "src/ffi/mhx_ffi.js");
 mkdirSync(distDir, { recursive: true });
 
 let mainJs = readFileSync(buildMain, "utf8");
+const autoRunIdx = mainJs.lastIndexOf("moonbitlang$async$$run_async_main");
+if (autoRunIdx !== -1) {
+  const start = mainJs.lastIndexOf("(() =>", autoRunIdx);
+  const end = mainJs.indexOf("})();", autoRunIdx);
+  if (start !== -1 && end !== -1) {
+    mainJs = mainJs.slice(0, start) + mainJs.slice(end + 5);
+  }
+}
 const exportsBlock = `
 export const init_mhx = f4ah6o$mhx$core$$init_mhx;
 export const process = f4ah6o$mhx$core$$process;

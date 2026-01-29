@@ -7,3 +7,4 @@ target
 .jj/.opencode/
 dist/
 node_modules/
+.opencode/skills/

@@ -48,9 +48,10 @@ release: release-check
     version=$(node -p "require('./package.json').version"); \
     git tag "v${version}"; \
     git push origin "v${version}"; \
+    sha=$(git rev-parse "v${version}"); \
     run_id=""; \
     while [ -z "$run_id" ]; do \
-        run_id=$(gh run list --workflow npm-publish.yaml --ref "refs/tags/v${version}" --limit 1 --json databaseId --jq '.[0].databaseId'); \
+        run_id=$(gh run list --workflow npm-publish.yaml --commit "$sha" --limit 1 --json databaseId --jq '.[0].databaseId'); \
         [ -z "$run_id" ] && sleep 2; \
     done; \
     gh run watch "$run_id" --exit-status

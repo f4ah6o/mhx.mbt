@@ -1,7 +1,7 @@
-import * as mhx from "../dist/index.js";
-import * as mhxFfi from "../dist/mhx_ffi.js";
-
+const mhxFfi = await import("../dist/mhx_ffi.js");
 globalThis.mhx_ffi = mhxFfi;
+
+const mhx = await import("../dist/index.js");
 if (mhxFfi.initMhxFfi) {
   mhxFfi.initMhxFfi({
     on_fetch_success: mhx.on_fetch_success,

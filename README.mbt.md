@@ -1,4 +1,11 @@
 # mhx - MoonBit Hypermedia X
+<!-- bdg:begin -->
+[![npm](https://img.shields.io/npm/v/mhx.svg)](https://www.npmjs.com/package/mhx)
+![moonbit](https://img.shields.io/badge/moonbit-f4ah6o/mhx-informational)
+[![license](https://img.shields.io/github/license/f4ah6o/mhx.mbt.svg)](https://github.com/f4ah6o/mhx.mbt)
+[![CI](https://github.com/f4ah6o/mhx.mbt/actions/workflows/npm-publish.yaml/badge.svg)](https://github.com/f4ah6o/mhx.mbt/actions/workflows/npm-publish.yaml)
+[![CI](https://github.com/f4ah6o/mhx.mbt/actions/workflows/ci.yaml/badge.svg)](https://github.com/f4ah6o/mhx.mbt/actions/workflows/ci.yaml)
+<!-- bdg:end -->
 
 A type-safe Hypermedia-Driven Architecture (HDA) library for MoonBit/WebAssembly, inspired by [htmx](https://htmx.org).
 
@@ -296,3 +303,8 @@ moon -C mhx.mbt build --target js
 3. Use the npm wrapper entry:
 
 - `npm/index.js` initializes the FFI via `initMhxFfi` and re-exports the public API.
+
+
+
+
+

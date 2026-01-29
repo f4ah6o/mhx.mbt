@@ -1,0 +1,31 @@
+name: Publish Package
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  id-token: write  # Required for OIDC
+  contents: read
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Install MoonBit CLI
+        run: |
+          curl -fsSL https://cli.moonbitlang.com/install/unix.sh | bash
+          echo "$HOME/.moon/bin" >> "$GITHUB_PATH"
+      - name: Moon update
+        run: moon update
+      - name: Moon Build
+        run: moon fmt && moon check && moon test && moon build --target js
+      - name: NPM Publish
+        run: |
+          mkdir -p dist
+          cp _build/js/release/build/main/main.js dist/index.js
+          cp src/ffi/mhx_ffi.js dist/mhx_ffi.js
+          npm publish

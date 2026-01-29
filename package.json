@@ -13,5 +13,10 @@
     "build:moon": "moon fmt && moon check && moon test && moon build --target js",
     "build": "pnpm build:moon && mkdir -p dist && cp _build/js/release/build/main/main.js dist/index.js && cp src/ffi/mhx_ffi.js dist/mhx_ffi.js",
     "prepublishOnly": "npm run build"
+  },
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/f4ah6o/mhx.mbt"
   }
 }

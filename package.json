@@ -11,8 +11,7 @@
   ],
   "scripts": {
     "build:moon": "moon fmt && moon check && moon test && moon build --target js",
-    "build": "pnpm build:moon && mkdir -p dist && cp _build/js/release/build/main/main.js dist/index.js && cp src/ffi/mhx_ffi.js dist/mhx_ffi.js",
-    "prepublishOnly": "npm run build"
+    "build": "pnpm build:moon && mkdir -p dist && cp _build/js/release/build/main/main.js dist/index.js && cp src/ffi/mhx_ffi.js dist/mhx_ffi.js"
   },
   "license": "Apache-2.0",
   "repository": {

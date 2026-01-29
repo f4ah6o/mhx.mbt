@@ -42,3 +42,14 @@ release-check: clean fmt info check test
 # Build for distribution
 build: release-check
     pnpm build
+
+# Tag current version and push
+tag dry_run="false":
+    version=$(node -p "require('./package.json').version"); \
+    if [ "{{dry_run}}" = "true" ]; then \
+        echo "git tag v${version}"; \
+        echo "git push origin v${version}"; \
+    else \
+        git tag "v${version}"; \
+        git push origin "v${version}"; \
+    fi

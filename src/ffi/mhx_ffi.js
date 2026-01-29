@@ -802,7 +802,7 @@ export function current_time() {
 // Export all FFI functions as a module
 // ============================================================================
 
-export default {
+const mhx_ffi = {
   initMhxFfi,
   // Document/Window
   get_document,
@@ -961,3 +961,69 @@ export default {
   // Timing
   current_time,
 };
+
+export default mhx_ffi;
+
+if (typeof globalThis !== "undefined" && !globalThis.mhx_ffi) {
+  globalThis.mhx_ffi = mhx_ffi;
+}
+
+function build_process_from_global(g) {
+  if (g.f4ah6o$mhx$core$$process) {
+    return g.f4ah6o$mhx$core$$process;
+  }
+  if (g.f4ah6o$mhx$core$$Mhx$process_tree && g.f4ah6o$mhx$core$$global_mhx) {
+    return (root) =>
+      g.f4ah6o$mhx$core$$Mhx$process_tree(g.f4ah6o$mhx$core$$global_mhx, root);
+  }
+  return null;
+}
+
+function try_register_from_global() {
+  if (mbtModule !== null && globalThis.mhx) {
+    return true;
+  }
+  const g = globalThis;
+  const init = g.f4ah6o$mhx$core$$init_mhx;
+  const handle = g.f4ah6o$mhx$core$$handle_event;
+  const onFetchOk = g.f4ah6o$mhx$network$$on_fetch_success;
+  const onFetchErr = g.f4ah6o$mhx$network$$on_fetch_error;
+  const onMutation = g.f4ah6o$mhx$core$$on_mutation_observed;
+  const process = build_process_from_global(g);
+  if (init && handle && onFetchOk && onFetchErr && onMutation && process) {
+    const version =
+      g.f4ah6o$mhx$$version || g.f4ah6o$mhx$core$$version || "unknown";
+    register_exports(
+      init,
+      process,
+      handle,
+      version,
+      onFetchOk,
+      onFetchErr,
+      onMutation
+    );
+    return true;
+  }
+  return false;
+}
+
+function auto_register_exports() {
+  if (try_register_from_global()) {
+    return;
+  }
+  if (typeof setTimeout !== "function") {
+    return;
+  }
+  let attempts = 0;
+  const maxAttempts = 50;
+  const retry = () => {
+    attempts += 1;
+    if (try_register_from_global() || attempts >= maxAttempts) {
+      return;
+    }
+    setTimeout(retry, 0);
+  };
+  setTimeout(retry, 0);
+}
+
+auto_register_exports();

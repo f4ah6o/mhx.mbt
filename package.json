@@ -1,6 +1,6 @@
 {
   "name": "mhx",
-  "version": "2026.1.18",
+  "version": "2026.1.19",
   "type": "module",
   "exports": {
     ".": "./npm/index.js",

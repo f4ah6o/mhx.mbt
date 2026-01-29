@@ -15,10 +15,6 @@ const ffiHeader =
 if (!esmMainJs.startsWith('import mhxFfi from "./mhx_ffi.js";')) {
   esmMainJs = ffiHeader + esmMainJs;
 }
-esmMainJs = esmMainJs.replace(
-  /\(\(\)\s*=>\s*\{[\s\S]*?moonbitlang\$async\$\$run_async_main[\s\S]*?\}\)\(\);/g,
-  "",
-);
 const exportsBlock = `
 export const init_mhx = f4ah6o$mhx$core$$init_mhx;
 export const process = f4ah6o$mhx$core$$process;

@@ -1,4 +1,9 @@
-import { copyFileSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import {
+  copyFileSync,
+  mkdirSync,
+  readFileSync,
+  writeFileSync,
+} from "node:fs";
 import { join } from "node:path";
 
 const root = process.cwd();
@@ -9,6 +14,8 @@ const buildFfi = join(root, "src/ffi/mhx_ffi.js");
 mkdirSync(distDir, { recursive: true });
 
 const rawMainJs = readFileSync(buildMain, "utf8");
+const packageJson = JSON.parse(readFileSync(join(root, "package.json"), "utf8"));
+const packageVersion = String(packageJson.version ?? "0.0.0");
 let esmMainJs = rawMainJs;
 const ffiHeader =
   'import mhxFfi from "./mhx_ffi.js";\nconst mhx_ffi = mhxFfi;\n';
@@ -29,7 +36,7 @@ if (!esmMainJs.startsWith('import mhxFfi from "./mhx_ffi.js";')) {
 const exportsBlock = `
 export const init_mhx = f4ah6o$mhx$core$$init_mhx;
 export { process, handle_event, get_instance };
-export const version = f4ah6o$mhx$$version;
+export const version = ${JSON.stringify(packageVersion)};
 export const on_fetch_success = f4ah6o$mhx$network$$on_fetch_success;
 export const on_fetch_error = f4ah6o$mhx$network$$on_fetch_error;
 export const on_mutation_observed = f4ah6o$mhx$core$$on_mutation_observed;

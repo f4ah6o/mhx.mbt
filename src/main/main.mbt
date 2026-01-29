@@ -32,7 +32,12 @@ let _keep_handle_event : (@ffi.Event, @ffi.Element) -> Unit = @core.handle_event
 let _keep_get_instance : () -> @core.Mhx = @core.get_instance
 
 ///|
-let _keep_version : String = @mhx.version
+
+///|
+pub let version : String = @mhx.version
+
+///|
+let _keep_version : String = version
 
 ///|
 async fn main {

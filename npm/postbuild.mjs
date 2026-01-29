@@ -20,6 +20,16 @@ const packageVersion = String(packageJson.version ?? "0.0.0");
 const autorunRe =
   /\(\(\)\s*=>\s*\{\s*moonbitlang\$async\$\$run_async_main\([\s\S]*?\);\s*\}\)\(\);\s*/;
 const rawMainJsNoAutorun = rawMainJs.replace(autorunRe, "");
+
+const ffiInitBlock = `
+const mhx_callbacks = {
+  on_fetch_success: f4ah6o$mhx$network$$on_fetch_success,
+  on_fetch_error: f4ah6o$mhx$network$$on_fetch_error,
+  on_mutation_observed: f4ah6o$mhx$core$$on_mutation_observed,
+};
+mhx_ffi.initMhxFfi(mhx_callbacks);
+globalThis.mhx_callbacks = mhx_callbacks;
+`;
 let esmMainJs = rawMainJsNoAutorun;
 const ffiHeader =
   'import mhxFfi from "./mhx_ffi.js";\nconst mhx_ffi = mhxFfi;\n';
@@ -48,6 +58,9 @@ export const on_mutation_observed = f4ah6o$mhx$core$$on_mutation_observed;
 const hasStableExports = esmMainJs.includes("const process = (root) =>");
 if (!hasStableExports) {
   esmMainJs += `\n${stableExports}`;
+}
+if (!esmMainJs.includes("mhx_ffi.initMhxFfi")) {
+  esmMainJs += `\n${ffiInitBlock}`;
 }
 if (!esmMainJs.includes("export const init_mhx")) {
   esmMainJs += `\n${exportsBlock}`;

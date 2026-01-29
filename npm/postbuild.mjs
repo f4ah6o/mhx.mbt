@@ -8,12 +8,14 @@ const buildFfi = join(root, "src/ffi/mhx_ffi.js");
 
 mkdirSync(distDir, { recursive: true });
 
-let mainJs = readFileSync(buildMain, "utf8");
-const ffiHeader = 'import mhxFfi from "./mhx_ffi.js";\nconst mhx_ffi = mhxFfi;\n';
-if (!mainJs.startsWith('import mhxFfi from "./mhx_ffi.js";')) {
-  mainJs = ffiHeader + mainJs;
+const rawMainJs = readFileSync(buildMain, "utf8");
+let esmMainJs = rawMainJs;
+const ffiHeader =
+  'import mhxFfi from "./mhx_ffi.js";\nconst mhx_ffi = mhxFfi;\n';
+if (!esmMainJs.startsWith('import mhxFfi from "./mhx_ffi.js";')) {
+  esmMainJs = ffiHeader + esmMainJs;
 }
-mainJs = mainJs.replace(
+esmMainJs = esmMainJs.replace(
   /\(\(\)\s*=>\s*\{[\s\S]*?moonbitlang\$async\$\$run_async_main[\s\S]*?\}\)\(\);/g,
   "",
 );
@@ -27,8 +29,9 @@ export const on_fetch_success = f4ah6o$mhx$network$$on_fetch_success;
 export const on_fetch_error = f4ah6o$mhx$network$$on_fetch_error;
 export const on_mutation_observed = f4ah6o$mhx$core$$on_mutation_observed;
 `;
-if (!mainJs.includes("export const init_mhx")) {
-  mainJs += `\n${exportsBlock}`;
+if (!esmMainJs.includes("export const init_mhx")) {
+  esmMainJs += `\n${exportsBlock}`;
 }
-writeFileSync(join(distDir, "index.js"), mainJs);
+writeFileSync(join(distDir, "index.js"), rawMainJs);
+writeFileSync(join(distDir, "index.mjs"), esmMainJs);
 copyFileSync(buildFfi, join(distDir, "mhx_ffi.js"));

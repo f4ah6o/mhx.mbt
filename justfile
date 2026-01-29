@@ -47,4 +47,5 @@ build: release-check
 release: release-check
     version=$(node -p "require('./package.json').version"); \
     git tag "v${version}"; \
-    git push origin "v${version}"
+    git push origin "v${version}"; \
+    gh run watch --exit-status --workflow npm-publish.yaml --ref "refs/tags/v${version}"

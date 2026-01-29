@@ -1,4 +1,4 @@
-import * as mhx from "../dist/index.js";
+import * as mhx from "../dist/index.mjs";
 
 export const init_mhx = mhx.init_mhx;
 export const process = mhx.process;

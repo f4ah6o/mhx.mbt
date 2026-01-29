@@ -25,12 +25,9 @@ jobs:
       - name: Moon update
         run: moon update
       - name: Moon Build
-        run: moon fmt && moon check && moon test && moon build --target js
+        run: pnpm build
       - name: NPM Publish
         run: |
-          mkdir -p dist
-          cp _build/js/release/build/main/main.js dist/index.js
-          cp src/ffi/mhx_ffi.js dist/mhx_ffi.js
           rm -f README.md && cp README.npm.md README.md
           npm publish --no-git-checks
           rm -f README.md && ln -s README.mbt.md README.md

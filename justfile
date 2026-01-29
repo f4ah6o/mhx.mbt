@@ -33,6 +33,12 @@ info:
 # Clean build artifacts
 clean:
     moon clean
+    rm -rf dist
+    rm -rf node_modules
 
 # Pre-release check
-release-check: fmt info check test
+release-check: clean fmt info check test
+
+# Build for distribution
+build: release-check
+    pnpm build

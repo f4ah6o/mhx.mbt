@@ -2,6 +2,11 @@
 package "f4ah6o/mhx/main"
 
 // Values
+pub fn on_fetch_error(Int, String) -> Unit
+
+pub fn on_fetch_success(Int, String) -> Unit
+
+pub fn on_mutation_observed(Int) -> Unit
 
 // Errors
 

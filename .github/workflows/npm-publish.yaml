@@ -28,6 +28,8 @@ jobs:
         run: moon update
       - name: Moon Build
         run: pnpm build
+      - name: Verify dist artifacts
+        run: node npm/verify-dist.mjs
       - name: NPM Publish
         run: |
           rm -f README.md && cp README.npm.md README.md

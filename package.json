@@ -14,7 +14,7 @@
   ],
   "scripts": {
     "build:moon": "moon fmt && moon check && moon test && moon build --target js",
-    "build": "pnpm build:moon && node npm/postbuild.mjs"
+    "build": "pnpm build:moon && node npm/postbuild.mjs && node npm/verify-dist.mjs"
   },
   "license": "Apache-2.0",
   "repository": {

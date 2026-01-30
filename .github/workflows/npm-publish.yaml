@@ -21,7 +21,8 @@ jobs:
       - name: Setup pnpm
         run: |
            npm install -g pnpm@10.28.0 |
-           pnpm add vite
+           pnpm add vite |
+           pnpm install
       - name: Install MoonBit CLI
         run: |
           curl -fsSL https://cli.moonbitlang.com/install/unix.sh | bash

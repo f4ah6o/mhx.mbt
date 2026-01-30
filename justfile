@@ -34,7 +34,6 @@ info:
 clean:
     moon clean
     rm -rf dist
-    rm -rf node_modules
 
 # Pre-release check
 release-check: clean fmt info check test

@@ -2,14 +2,19 @@
   "name": "f4ah6o/mhx",
   "version": "0.1.1",
   "deps": {
-    "moonbitlang/async": "0.16.2",
+    "moonbitlang/async": "0.16.4",
     "f4ah6o/mhx-spec": "0.1.0"
   },
-  "source": "src",
-  "preferred-target": "js",
   "readme": "README.mbt.md",
   "repository": "https://github.com/f4ah6o/mhx.mbt",
   "license": "Apache-2.0",
-  "keywords": ["htmx", "hypermedia", "hda", "wasm"],
-  "description": "MoonBit Hypermedia X - A type-safe HDA library for MoonBit/Wasm"
+  "keywords": [
+    "htmx",
+    "hypermedia",
+    "hda",
+    "wasm"
+  ],
+  "description": "MoonBit Hypermedia X - A type-safe HDA library for MoonBit/Wasm",
+  "source": "src",
+  "preferred-target": "js"
 }

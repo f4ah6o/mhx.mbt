@@ -74,8 +74,49 @@ process(node);
 pnpm build
 ```
 
-This builds `dist/index.js` and `dist/mhx_ffi.js`, which are used by the npm
-wrapper at `npm/index.js`.
+This builds a single bundled file for each format:
+
+- `dist/mhx.esm.js` - ES Module format
+- `dist/mhx.umd.js` - UMD format (for script tags)
+
+## CDN Usage
+
+You can load mhx directly from a CDN without npm:
+
+```html
+<script src="https://unpkg.com/mhx/dist/mhx.umd.js"></script>
+<script>
+  mhx.init_mhx();
+  mhx.process(document.body);
+</script>
+```
+
+## Migration Guide
+
+### From v2026.1.19 or earlier
+
+The package structure has changed to use single-file bundles.
+
+**Before (v2026.1.19):**
+
+```js
+// Entry point was npm/index.js which imported from dist/
+import mhx from "mhx";
+import ffi from "mhx/ffi"; // Separate FFI import was available
+```
+
+**After (v2026.1.20+):**
+
+```js
+// Single bundled entry point - FFI is included
+import mhx from "mhx";
+```
+
+**Key changes:**
+
+- The `mhx/ffi` export has been removed (FFI is now bundled)
+- All functionality is in a single file per format
+- UMD build available for direct `<script>` tag usage
 
 ## License
 

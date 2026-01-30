@@ -2,23 +2,33 @@
   "name": "mhx",
   "version": "2026.1.19",
   "type": "module",
+  "main": "./dist/mhx.umd.js",
+  "module": "./dist/mhx.esm.js",
+  "unpkg": "./dist/mhx.umd.js",
   "exports": {
-    ".": "./npm/index.js",
-    "./ffi": "./dist/mhx_ffi.js"
+    ".": {
+      "import": "./dist/mhx.esm.js",
+      "require": "./dist/mhx.umd.js"
+    }
   },
   "files": [
-    "dist",
-    "npm",
+    "dist/mhx.esm.js",
+    "dist/mhx.umd.js",
     "LICENSE",
     "README.md"
   ],
   "scripts": {
     "build:moon": "moon fmt && moon check && moon test && moon build --target js",
-    "build": "pnpm build:moon && node npm/postbuild.mjs && node npm/verify-dist.mjs"
+    "build:bundle": "vite build",
+    "build": "pnpm build:moon && node npm/postbuild.mjs && pnpm build:bundle && node npm/cleanup.mjs"
   },
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
     "url": "https://github.com/f4ah6o/mhx.mbt"
+  },
+  "packageManager": "pnpm@10.28.2+sha512.41872f037ad22f7348e3b1debbaf7e867cfd448f2726d9cf74c08f19507c31d2c8e7a11525b983febc2df640b5438dee6023ebb1f84ed43cc2d654d2bc326264",
+  "devDependencies": {
+    "vite": "^7.3.1"
   }
 }

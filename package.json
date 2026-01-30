@@ -1,6 +1,6 @@
 {
   "name": "mhx",
-  "version": "2026.1.19",
+  "version": "2026.1.20",
   "type": "module",
   "main": "./dist/mhx.umd.js",
   "module": "./dist/mhx.esm.js",

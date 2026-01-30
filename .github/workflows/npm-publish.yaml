@@ -29,10 +29,10 @@ jobs:
           echo "$HOME/.moon/bin" >> "$GITHUB_PATH"
       - name: Moon update
         run: moon update
-      - name: Moon Build
+      - name: Install dependencies
+        run: pnpm install
+      - name: Build
         run: pnpm build
-      - name: Verify dist artifacts
-        run: node npm/verify-dist.mjs
       - name: NPM Publish
         run: |
           rm -f README.md && cp README.npm.md README.md

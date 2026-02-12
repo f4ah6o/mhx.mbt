@@ -1,8 +1,8 @@
 import {
-  "f4ah6o/mhx" as @mhx,
-  "f4ah6o/mhx/core" as @core,
-  "f4ah6o/mhx/ffi" as @ffi,
-  "f4ah6o/mhx/network" as @network,
+  "f4ah6o/mhx" @mhx,
+  "f4ah6o/mhx/core" @core,
+  "f4ah6o/mhx/ffi" @ffi,
+  "f4ah6o/mhx/network" @network,
   "moonbitlang/async",
 }
 

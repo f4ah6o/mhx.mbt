@@ -542,7 +542,6 @@ fn Mhx::execute_request(
       self.finish_request(element, task, config, trigger)
     },
   )
-
 }
 
 ///|

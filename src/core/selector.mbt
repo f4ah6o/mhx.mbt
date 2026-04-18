@@ -78,7 +78,7 @@ fn find_adjacent_sibling(
     index += 1
     while index < count {
       let candidate = parent.child_at(index)
-      if not(candidate.is_null()) && candidate.matches(selector) {
+      if !candidate.is_null() && candidate.matches(selector) {
         return candidate
       }
       index += 1
@@ -87,7 +87,7 @@ fn find_adjacent_sibling(
     index -= 1
     while index >= 0 {
       let candidate = parent.child_at(index)
-      if not(candidate.is_null()) && candidate.matches(selector) {
+      if !candidate.is_null() && candidate.matches(selector) {
         return candidate
       }
       index -= 1

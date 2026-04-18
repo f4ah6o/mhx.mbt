@@ -19,7 +19,36 @@ pub(all) suberror MhxError {
   ConfigError(attribute~ : String, message~ : String)
   /// Swap operation error
   SwapError(target~ : String, strategy~ : String, message~ : String)
-} derive(Show)
+}
+
+///|
+pub impl Show for MhxError with output(self, logger) {
+  match self {
+    ParseError(e) =>
+      logger..write_string("ParseError(")..write_object(e).write_string(")")
+    NetworkError(url~, message~) =>
+      logger.write_string(
+        "NetworkError(url=\{url.to_json()}, message=\{message.to_json()})",
+      )
+    TimeoutError(url~, timeout_ms~) =>
+      logger.write_string(
+        "TimeoutError(url=\{url.to_json()}, timeout_ms=\{timeout_ms})",
+      )
+    AbortError(url~) => logger.write_string("AbortError(url=\{url.to_json()})")
+    DomError(element~, operation~, message~) =>
+      logger.write_string(
+        "DomError(element=\{element.to_json()}, operation=\{operation.to_json()}, message=\{message.to_json()})",
+      )
+    ConfigError(attribute~, message~) =>
+      logger.write_string(
+        "ConfigError(attribute=\{attribute.to_json()}, message=\{message.to_json()})",
+      )
+    SwapError(target~, strategy~, message~) =>
+      logger.write_string(
+        "SwapError(target=\{target.to_json()}, strategy=\{strategy.to_json()}, message=\{message.to_json()})",
+      )
+  }
+}
 
 ///|
 /// Error callback type for user-defined error handlers
@@ -134,7 +163,7 @@ pub fn MhxError::recovery_strategy(self : MhxError) -> RecoveryStrategy {
 ///|
 /// Check if the error is recoverable
 pub fn MhxError::is_recoverable(self : MhxError) -> Bool {
-  not(self.recovery_strategy() is Abort)
+  !(self.recovery_strategy() is Abort)
 }
 
 ///|

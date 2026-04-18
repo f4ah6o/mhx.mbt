@@ -3,7 +3,6 @@ import {
   "f4ah6o/mhx/core" @core,
   "f4ah6o/mhx/ffi" @ffi,
   "f4ah6o/mhx/network" @network,
-  "moonbitlang/async",
 }
 
 options(

@@ -21,7 +21,12 @@ pub(all) struct ElementConfig {
   vals : String?
   /// Whether this config has been processed
   processed : Bool
-} derive(Show)
+}
+
+///|
+pub impl Show for ElementConfig with output(self, logger) {
+  logger.write_string(self.to_json().stringify())
+}
 
 ///|
 /// HTTP methods supported
@@ -31,7 +36,20 @@ pub(all) enum HttpMethod {
   Put
   Patch
   Delete
-} derive(Show, Eq)
+} derive(Eq)
+
+///|
+pub impl Show for HttpMethod with output(self, logger) {
+  logger.write_string(
+    match self {
+      Get => "Get"
+      Post => "Post"
+      Put => "Put"
+      Patch => "Patch"
+      Delete => "Delete"
+    },
+  )
+}
 
 ///|
 pub impl ToJson for HttpMethod with to_json(self) {

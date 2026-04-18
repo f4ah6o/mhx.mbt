@@ -28,7 +28,7 @@ fn build_request_body(
   }
   let json_pairs = parse_mx_vals_pairs(mx_vals_json)
   let pairs : Array[(String, String)] = []
-  if not(form_values.is_empty()) {
+  if !form_values.is_empty() {
     for item in parse_form_encoded(form_values) {
       pairs.push(item)
     }
@@ -50,7 +50,7 @@ pub fn merge_request_bodies(
   mx_vals_json : String,
 ) -> String {
   let pairs : Array[(String, String)] = []
-  if not(form_body.is_empty()) {
+  if !form_body.is_empty() {
     for item in parse_form_encoded(form_body) {
       pairs.push(item)
     }
@@ -116,7 +116,7 @@ fn parse_mx_vals_pairs(mx_vals_json : String) -> Array[(String, String)] {
   if trimmed.is_empty() {
     return pairs
   }
-  if not(trimmed.has_prefix("{") && trimmed.has_suffix("}")) {
+  if !(trimmed.has_prefix("{") && trimmed.has_suffix("}")) {
     report_error(config_error("mx-vals", "expected JSON object"))
     return pairs
   }
@@ -178,8 +178,8 @@ fn split_json_pairs(input : String) -> Array[String] {
     } else if c == '\\' && in_string {
       escape = true
     } else if c == '"' {
-      in_string = not(in_string)
-    } else if not(in_string) {
+      in_string = !in_string
+    } else if !in_string {
       if c == '{' || c == '[' {
         depth += 1
       } else if c == '}' || c == ']' {
@@ -230,7 +230,7 @@ fn encode_form_pairs(pairs : Array[(String, String)]) -> String {
   let mut first = true
   for pair in pairs {
     let (key, value) = pair
-    if not(first) {
+    if !first {
       sb.write_char('&')
     }
     first = false
@@ -348,7 +348,7 @@ fn json_object_string(values : Map[String, String]) -> String {
   let mut first = true
   for pair in values {
     let (key, value) = pair
-    if not(first) {
+    if !first {
       sb.write_char(',')
     }
     first = false
@@ -387,7 +387,7 @@ fn is_number_literal(value : String) -> Bool {
         return false
       }
       dot_seen = true
-    } else if not(c >= '0' && c <= '9') {
+    } else if !(c >= '0' && c <= '9') {
       if i == 0 && (c == '-' || c == '+') {
         continue
       }

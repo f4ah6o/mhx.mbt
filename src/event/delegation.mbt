@@ -52,7 +52,7 @@ pub fn EventDelegator::register_event(
   self : EventDelegator,
   event_type : String,
 ) -> Unit {
-  if not(self.registered_events.contains(event_type)) {
+  if !self.registered_events.contains(event_type) {
     self.registered_events[event_type] = true
     self.handlers[event_type] = []
   }

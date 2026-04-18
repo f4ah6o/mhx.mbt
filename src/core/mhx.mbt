@@ -72,7 +72,7 @@ pub fn Mhx::process_tree(self : Mhx, root : @ffi.Element) -> Unit {
   let child_count = root.child_count()
   for i = 0; i < child_count; i = i + 1 {
     let child = root.child_at(i)
-    if not(child.is_null()) {
+    if !child.is_null() {
       self.process_tree(child)
     }
   }
@@ -245,13 +245,13 @@ pub fn Mhx::handle_event(
   event : @ffi.Event,
   target : @ffi.Element,
 ) -> Unit {
-  if not(self.delegator.is_active()) {
+  if !self.delegator.is_active() {
     return
   }
   let event_type = event.type_()
   // Walk up the DOM tree to find matching elements
   let mut current = target
-  while not(current.is_null()) {
+  while !current.is_null() {
     // Check if element has mx-* attributes
     if @event.has_mhx_attributes(current) {
       // Get or create configuration
@@ -287,7 +287,7 @@ pub fn Mhx::handle_event(
               if @event.check_filter_conditions(trigger, event) {
                 // Apply changed modifier for input-like events
                 if trigger.is_changed() &&
-                  not(self.is_value_changed(current, trigger_index)) {
+                  !self.is_value_changed(current, trigger_index) {
                   continue
                 }
                 // Get timing state for this element/trigger combination
@@ -321,7 +321,7 @@ pub fn Mhx::handle_event(
       }
     }
     // Move to parent
-    if not(current.has_parent()) {
+    if !current.has_parent() {
       break
     }
     current = current.parent_element_ffi()
@@ -428,7 +428,7 @@ fn build_request_url(
 ///|
 /// Push URL to history if mx-push-url is enabled
 fn maybe_push_url(element : @ffi.Element, url : String) -> Unit {
-  if not(element.has_attribute("mx-push-url")) {
+  if !element.has_attribute("mx-push-url") {
     return
   }
   let raw = element.get_attribute("mx-push-url").trim().to_string()
@@ -465,7 +465,7 @@ fn build_request_options(
     | @event.HttpMethod::Put
     | @event.HttpMethod::Patch => {
       let body_data = build_request_body(element, config)
-      if not(body_data.is_empty()) {
+      if !body_data.is_empty() {
         options = { ..options, body: Some(body_data) }
         options = options.with_header(
           "Content-Type", "application/x-www-form-urlencoded",
@@ -482,7 +482,7 @@ fn build_request_options(
             ""
           }
       }
-      if not(mx_vals_json.trim().is_empty()) {
+      if !mx_vals_json.trim().is_empty() {
         let merged_json = merge_vals_json("{}", mx_vals_json)
         options = options.with_header("HX-Trigger-Values", merged_json)
       }
@@ -673,7 +673,7 @@ fn register_default_event_listeners() -> Unit {
     doc.add_event_listener(event_type, fn(event) {
       if event.has_target() {
         let target = event.target_ffi()
-        if not(target.is_null()) {
+        if !target.is_null() {
           handle_event(event, target)
         }
       }

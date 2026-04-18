@@ -127,7 +127,7 @@ pub fn apply_throttle(
     // Enough time has passed, execute immediately
     state.last_execution = now
     action()
-  } else if not(state.is_throttled) {
+  } else if !state.is_throttled {
     // Schedule execution after remaining time
     state.is_throttled = true
     let remaining = throttle_ms.to_double() - elapsed

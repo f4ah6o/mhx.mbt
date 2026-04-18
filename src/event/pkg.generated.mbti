@@ -87,8 +87,7 @@ pub(all) enum HttpMethod {
   Put
   Patch
   Delete
-}
-pub impl Eq for HttpMethod
+} derive(Eq)
 pub impl Show for HttpMethod
 pub impl ToJson for HttpMethod
 

@@ -79,7 +79,7 @@ pub fn RequestOptions::to_json_string(self : RequestOptions) -> String {
     result = result + ",\"headers\":{"
     let mut first = true
     for key, value in self.headers {
-      if not(first) {
+      if !first {
         result = result + ","
       }
       result = result + "\"" + escape_json_string(key) + "\":\""

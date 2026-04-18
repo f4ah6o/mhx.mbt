@@ -40,6 +40,6 @@ pub let version : String = @mhx.version
 let _keep_version : String = version
 
 ///|
-async fn main {
+fn main {
   @core.init_mhx()
 }

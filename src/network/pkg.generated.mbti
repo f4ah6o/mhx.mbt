@@ -79,10 +79,13 @@ pub(all) struct RequestTask {
   element_id : Int
   url : String
   options : RequestOptions
-  controller : @ffi.AbortController
+  mut cancelled : Bool
+  mut callback_id : Int
   sync_strategy : @sync.SyncStrategy
 }
+pub fn RequestTask::attach_callback(Self, Int) -> Unit
 pub fn RequestTask::cancel(Self) -> Unit
+pub fn RequestTask::clear_callback(Self) -> Unit
 pub fn RequestTask::is_cancelled(Self) -> Bool
 pub fn RequestTask::new(Int, Int, String, RequestOptions, @sync.SyncStrategy) -> Self
 

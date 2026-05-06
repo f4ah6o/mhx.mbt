@@ -13,9 +13,15 @@ pub fn abort_error(String) -> MhxError
 
 pub fn config_error(String, String) -> MhxError
 
+pub fn config_issue_error(String, String, String, @parser.Position?, String?) -> MhxError
+
+pub fn config_issue_from_parse_error(@parser.ParseError, String, String?) -> MhxError
+
 pub fn default_error_handler(MhxError) -> Unit
 
 pub fn dom_error(String, String, String) -> MhxError
+
+pub fn ffi_error(String, String) -> MhxError
 
 pub fn from_parse_error(@parser.ParseError) -> MhxError
 
@@ -25,15 +31,21 @@ pub fn handle_event(@ffi.Event, @ffi.Element) -> Unit
 
 pub fn init_mhx() -> Unit
 
+pub fn internal_error(String, String) -> MhxError
+
 pub fn merge_request_bodies(String, String) -> String
 
 pub fn network_error(String, String) -> MhxError
+
+pub fn network_error_for_element(String, String, String) -> MhxError
 
 pub fn on_mutation_observed(Int) -> Unit
 
 pub fn process(@ffi.Element) -> Unit
 
 pub fn report_error(MhxError) -> Unit
+
+pub fn selector_error(String, String, String?, code? : String) -> MhxError
 
 pub fn set_error_handler((MhxError) -> Unit) -> Unit
 
@@ -44,17 +56,27 @@ pub fn timeout_error(String, Int) -> MhxError
 // Errors
 pub(all) suberror MhxError {
   ParseError(@parser.ParseError)
-  NetworkError(url~ : String, message~ : String)
-  TimeoutError(url~ : String, timeout_ms~ : Int)
-  AbortError(url~ : String)
+  NetworkError(url~ : String, message~ : String, source_element~ : String?)
+  TimeoutError(url~ : String, timeout_ms~ : Int, source_element~ : String?)
+  AbortError(url~ : String, source_element~ : String?)
   DomError(element~ : String, operation~ : String, message~ : String)
-  ConfigError(attribute~ : String, message~ : String)
-  SwapError(target~ : String, strategy~ : String, message~ : String)
+  ConfigError(code~ : String, attribute~ : String, message~ : String, position~ : @parser.Position?, source_element~ : String?)
+  SelectorError(code~ : String, selector~ : String, message~ : String, source_element~ : String?)
+  SwapError(target~ : String, strategy~ : String, message~ : String, source_element~ : String?)
+  FfiError(operation~ : String, message~ : String)
+  InternalError(code~ : String, message~ : String)
 }
+pub fn MhxError::attribute(Self) -> String?
+pub fn MhxError::category(Self) -> String
+pub fn MhxError::code(Self) -> String
 pub fn MhxError::is_recoverable(Self) -> Bool
+pub fn MhxError::message(Self) -> String
+pub fn MhxError::position(Self) -> @parser.Position?
 pub fn MhxError::recovery_strategy(Self) -> RecoveryStrategy
 pub fn MhxError::should_retry(Self) -> Bool
+pub fn MhxError::source_element(Self) -> String?
 pub impl Show for MhxError
+pub impl ToJson for MhxError
 
 // Types and methods
 pub(all) struct ErrorHandler {

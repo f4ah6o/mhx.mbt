@@ -333,6 +333,22 @@ export function element_set_value(elem, value) {
   elem.value = value;
 }
 
+export function element_dispatch_mhx_event(elem, eventName, detailJson) {
+  try {
+    const detail = detailJson ? JSON.parse(detailJson) : null;
+    elem.dispatchEvent(
+      new CustomEvent(eventName, {
+        bubbles: true,
+        cancelable: false,
+        detail,
+      }),
+    );
+    return "";
+  } catch (error) {
+    return error instanceof Error ? error.message : String(error);
+  }
+}
+
 // ============================================================================
 // Event
 // ============================================================================
@@ -871,6 +887,7 @@ const mhx_ffi = {
   element_child_at,
   element_value,
   element_set_value,
+  element_dispatch_mhx_event,
   // Event
   event_type,
   event_target,

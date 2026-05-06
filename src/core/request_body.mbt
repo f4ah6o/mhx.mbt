@@ -149,7 +149,7 @@ fn parse_mx_vals_pairs(mx_vals_json : String) -> Array[(String, String)] {
           }
         }
       }
-      None => ()
+      None => report_error(config_error("mx-vals", "expected key:value pair"))
     }
   }
   pairs
@@ -215,6 +215,11 @@ fn parse_json_value(raw : String) -> String? {
   let t = raw.trim().to_string()
   if t.has_prefix("\"") {
     parse_json_string(t)
+  } else if t.has_prefix("{") || t.has_prefix("[") {
+    report_error(
+      config_error("mx-vals", "only flat scalar JSON values are supported"),
+    )
+    None
   } else if t == "true" || t == "false" || t == "null" {
     Some(t)
   } else {

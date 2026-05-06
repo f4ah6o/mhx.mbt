@@ -159,3 +159,12 @@ pub fn Element::value(self : Element) -> String = "mhx_ffi" "element_value"
 ///|
 /// Set the value (for form elements)
 pub fn Element::set_value(self : Element, value : String) -> Unit = "mhx_ffi" "element_set_value"
+
+///|
+/// Dispatch an `mhx:*` CustomEvent with a JSON detail payload.
+/// Returns an empty string on success or an error message on failure.
+pub fn Element::dispatch_mhx_event(
+  self : Element,
+  event_name : String,
+  detail_json : String,
+) -> String = "mhx_ffi" "element_dispatch_mhx_event"

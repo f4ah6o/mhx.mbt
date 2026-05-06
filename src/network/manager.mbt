@@ -17,8 +17,10 @@ pub(all) struct RequestTask {
   url : String
   /// Request options
   options : RequestOptions
-  /// Abort controller for cancellation
-  controller : @ffi.AbortController
+  /// Whether the task was cancelled before completion
+  mut cancelled : Bool
+  /// Callback identifier for the active JS fetch bridge
+  mut callback_id : Int
   /// Sync strategy
   sync_strategy : SyncStrategy
 }
@@ -32,28 +34,46 @@ pub fn RequestTask::new(
   options : RequestOptions,
   sync_strategy : SyncStrategy,
 ) -> RequestTask {
-  let controller = @ffi.AbortController::new()
-  let options_with_signal = options.with_signal(controller.signal())
   {
     id,
     element_id,
     url,
-    options: options_with_signal,
-    controller,
+    options,
+    cancelled: false,
+    callback_id: 0,
     sync_strategy,
   }
 }
 
 ///|
+/// Attach the JS fetch callback identifier once execution starts.
+pub fn RequestTask::attach_callback(
+  self : RequestTask,
+  callback_id : Int,
+) -> Unit {
+  self.callback_id = callback_id
+}
+
+///|
+/// Clear the JS fetch callback identifier after completion.
+pub fn RequestTask::clear_callback(self : RequestTask) -> Unit {
+  self.callback_id = 0
+}
+
+///|
 /// Cancel this task
 pub fn RequestTask::cancel(self : RequestTask) -> Unit {
-  self.controller.abort()
+  self.cancelled = true
+  if self.callback_id > 0 {
+    cancel_fetch(self.callback_id)
+    self.callback_id = 0
+  }
 }
 
 ///|
 /// Check if this task is cancelled
 pub fn RequestTask::is_cancelled(self : RequestTask) -> Bool {
-  self.controller.signal().aborted()
+  self.cancelled
 }
 
 ///|
@@ -158,11 +178,14 @@ pub fn RequestManager::schedule(
       if queue.is_busy() {
         // Queue based on behavior
         match behavior {
-          @sync.QueueMode::First => {
-            // Add to end of queue
-            queue.pending.push(task)
-            ScheduleResult::Queued
-          }
+          @sync.QueueMode::First =>
+            // Preserve only the first queued task while busy
+            if queue.pending.is_empty() {
+              queue.pending.push(task)
+              ScheduleResult::Queued
+            } else {
+              ScheduleResult::Dropped
+            }
           @sync.QueueMode::Last => {
             // Replace any pending with just this one
             queue.pending.clear()

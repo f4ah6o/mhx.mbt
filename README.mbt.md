@@ -206,6 +206,12 @@ moon fmt
 moon build --target js
 ```
 
+### Issue Management
+
+Issues are managed locally in the `issues/` directory as markdown files.  
+This approach is inspired by [shiguredo/http3-rs](https://github.com/shiguredo/http3-rs/blob/develop/AGENTS.md).  
+See [AGENTS.md](AGENTS.md) for the full workflow.
+
 ## Comparison with htmx
 
 | Feature | htmx | mhx |

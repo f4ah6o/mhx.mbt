@@ -168,3 +168,31 @@ pub fn Element::dispatch_mhx_event(
   event_name : String,
   detail_json : String,
 ) -> String = "mhx_ffi" "element_dispatch_mhx_event"
+
+///|
+/// Dispatch a request lifecycle event by building the detail object directly in JS.
+/// Avoids the JSON.stringify round-trip for high-frequency request events.
+/// Pass empty strings for status/error args when not applicable.
+pub fn Element::dispatch_request_event(
+  self : Element,
+  phase : String,
+  url : String,
+  http_method : String,
+  trigger : String,
+  source_element : String,
+  status : String,
+  error_category : String,
+  error_message : String,
+) -> String = "mhx_ffi" "element_dispatch_request_event"
+
+///|
+/// Dispatch a swap lifecycle event by building the detail object directly in JS.
+/// Avoids the JSON.stringify round-trip for high-frequency swap events.
+pub fn Element::dispatch_swap_event(
+  self : Element,
+  phase : String,
+  trigger : String,
+  strategy : String,
+  source_element : String,
+  target : String,
+) -> String = "mhx_ffi" "element_dispatch_swap_event"

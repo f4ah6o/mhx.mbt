@@ -349,6 +349,65 @@ export function element_dispatch_mhx_event(elem, eventName, detailJson) {
   }
 }
 
+/**
+ * Dispatch a mhx:request event by building the detail object directly.
+ * Avoids the JSON.stringify -> JSON.parse round-trip for high-frequency request lifecycle events.
+ * Empty strings for status/errorCategory/errorMessage mean null/absent.
+ */
+export function element_dispatch_request_event(elem, phase, url, httpMethod, trigger, sourceElement, status, errorCategory, errorMessage) {
+  try {
+    const detail = {
+      phase,
+      url,
+      method: httpMethod,
+      trigger,
+      sourceElement,
+      status: status !== "" ? Number(status) : null,
+      error: errorCategory !== "" ? { category: errorCategory, message: errorMessage } : null,
+    };
+    const eventName = phase === "in_flight" ? "mhx:beforeRequest" : "mhx:afterRequest";
+    elem.dispatchEvent(
+      new CustomEvent(eventName, {
+        bubbles: true,
+        cancelable: false,
+        detail,
+      }),
+    );
+    return "";
+  } catch (error) {
+    return error instanceof Error ? error.message : String(error);
+  }
+}
+
+/**
+ * Dispatch a mhx:swap or mhx:error event by building the detail object directly.
+ * Avoids the JSON.stringify -> JSON.parse round-trip for high-frequency swap lifecycle events.
+ */
+export function element_dispatch_swap_event(elem, phase, trigger, strategy, sourceElement, target) {
+  try {
+    const detail = {
+      phase,
+      trigger,
+      strategy,
+      sourceElement,
+      target: target || null,
+    };
+    const eventName = phase === "swapping" ? "mhx:beforeSwap" :
+                      phase === "completed" ? "mhx:afterSwap" :
+                      "mhx:error";
+    elem.dispatchEvent(
+      new CustomEvent(eventName, {
+        bubbles: true,
+        cancelable: false,
+        detail,
+      }),
+    );
+    return "";
+  } catch (error) {
+    return error instanceof Error ? error.message : String(error);
+  }
+}
+
 // ============================================================================
 // Event
 // ============================================================================
@@ -613,9 +672,10 @@ export function initiate_fetch(url, optionsJson, callbackId) {
       }
     })
     .catch((error) => {
+      const errorType = (error instanceof DOMException && error.name === "AbortError") ? "abort" : "network";
       const callbacks = mbtModule || globalThis.mhx_callbacks;
       if (callbacks && fetchCallbacks.has(callbackId)) {
-        callbacks.on_fetch_error(callbackId, error.message);
+        callbacks.on_fetch_error(callbackId, errorType, error instanceof Error ? error.message : String(error));
       }
     })
     .finally(() => {
@@ -888,6 +948,8 @@ const mhx_ffi = {
   element_value,
   element_set_value,
   element_dispatch_mhx_event,
+  element_dispatch_request_event,
+  element_dispatch_swap_event,
   // Event
   event_type,
   event_target,

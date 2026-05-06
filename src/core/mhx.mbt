@@ -234,11 +234,6 @@ let request_attribute_names : Array[String] = [
 ]
 
 ///|
-fn zero_position() -> @parser.Position {
-  @parser.Position::at(0, "")
-}
-
-///|
 fn describe_element(element : @ffi.Element) -> String {
   let id = element.id()
   if id.is_empty() {
@@ -320,7 +315,7 @@ fn first_validation_error(element : @ffi.Element) -> MhxError? {
         "MHX_VALIDATE_CONFLICTING_REQUEST_METHODS",
         "attributes",
         "Element bundle contains multiple request method attributes",
-        Some(zero_position()),
+        None,
         source_element,
       ),
     )
@@ -333,7 +328,7 @@ fn first_validation_error(element : @ffi.Element) -> MhxError? {
           "MHX_VALIDATE_EMPTY_REQUEST_URL",
           name,
           "Request URL must not be empty",
-          Some(zero_position()),
+          None,
           source_element,
         ),
       )
@@ -349,37 +344,34 @@ fn first_validation_error(element : @ffi.Element) -> MhxError? {
       None => ()
     }
   }
-  if element.has_attribute("mx-trigger") {
-    let parsed_triggers : Result[Array[@trigger.TriggerDef], @parser.ParseError] = try? @parser.parse_trigger(
-      element.get_attribute("mx-trigger"),
-    )
-    match parsed_triggers {
-      Err(err) =>
-        return Some(
-          config_issue_from_parse_error(err, "mx-trigger", source_element),
-        )
-      Ok(triggers) =>
-        if element.has_attribute("mx-sync") {
-          match @sync.parse_sync_strategy(element.get_attribute("mx-sync")) {
-            @sync.SyncStrategy::Queue(_) =>
-              if triggers
-                .iter()
-                .any(fn(trigger) {
-                  trigger.get_queue_mode() != @trigger.QueueMode::Drop
-                }) {
-                return Some(
-                  config_issue_error(
-                    "MHX_VALIDATE_TRIGGER_SYNC_CONFLICT",
-                    "mx-sync",
-                    "Trigger queue modifiers overlap with sync queue strategy",
-                    Some(zero_position()),
-                    source_element,
-                  ),
-                )
-              }
-            _ => ()
-          }
+  None
+}
+
+///|
+fn validate_config_triggers(
+  element : @ffi.Element,
+  config : @event.ElementConfig,
+) -> MhxError? {
+  let source_element = Some(describe_element(element))
+  if element.has_attribute("mx-sync") {
+    match @sync.parse_sync_strategy(element.get_attribute("mx-sync")) {
+      @sync.SyncStrategy::Queue(_) =>
+        if config.triggers
+          .iter()
+          .any(fn(trigger) {
+            trigger.get_queue_mode() != @trigger.QueueMode::Drop
+          }) {
+          return Some(
+            config_issue_error(
+              "MHX_VALIDATE_TRIGGER_SYNC_CONFLICT",
+              "mx-sync",
+              "Trigger queue modifiers overlap with sync queue strategy",
+              None,
+              source_element,
+            ),
+          )
         }
+      _ => ()
     }
   }
   None
@@ -404,42 +396,6 @@ fn report_element_error(element : @ffi.Element, error : MhxError) -> Unit {
     "error": error.to_json(),
     "sourceElement": describe_element(element).to_json(),
   })
-}
-
-///|
-fn request_event_detail(
-  element : @ffi.Element,
-  task : @network.RequestTask,
-  trigger : @trigger.TriggerDef,
-  phase : String,
-  status? : Int,
-  error? : MhxError,
-) -> Json {
-  {
-    "phase": phase.to_json(),
-    "url": task.url.to_json(),
-    "method": task.options.http_method.to_json(),
-    "trigger": trigger.to_string().to_json(),
-    "sourceElement": describe_element(element).to_json(),
-    "status": status.to_json(),
-    "error": error.to_json(),
-  }
-}
-
-///|
-fn swap_event_detail(
-  element : @ffi.Element,
-  swap_target : @ffi.Element,
-  trigger : @trigger.TriggerDef,
-  options : @swap_spec.SwapOptions,
-) -> Json {
-  {
-    "phase": "swapping".to_json(),
-    "trigger": trigger.to_string().to_json(),
-    "strategy": options.to_string().to_json(),
-    "sourceElement": describe_element(element).to_json(),
-    "target": describe_element(swap_target).to_json(),
-  }
 }
 
 ///|
@@ -488,10 +444,17 @@ fn Mhx::load_config(
             }
           }
           match parsed {
-            Some(config) => {
-              self.cache.set(element_id, config)
-              Some(config)
-            }
+            Some(config) =>
+              match validate_config_triggers(element, config) {
+                Some(error) => {
+                  report_element_error(element, error)
+                  None
+                }
+                None => {
+                  self.cache.set(element_id, config)
+                  Some(config)
+                }
+              }
             None => None
           }
         }
@@ -771,10 +734,17 @@ fn Mhx::execute_request(
   config : @event.ElementConfig,
   trigger : @trigger.TriggerDef,
 ) -> Unit {
-  emit_lifecycle_event(
-    element,
-    "mhx:beforeRequest",
-    request_event_detail(element, task, trigger, "in_flight"),
+  ignore(
+    element.dispatch_request_event(
+      "in_flight",
+      task.url,
+      task.options.http_method,
+      trigger.to_string(),
+      describe_element(element),
+      "",
+      "",
+      "",
+    ),
   )
   let callback_id = @network.fetch_async(
     task.url,
@@ -782,22 +752,28 @@ fn Mhx::execute_request(
     fn(response) {
       self.handle_response(element, task, config, trigger, response)
     },
-    fn(error_message) {
+    fn(error_type, error_message) {
       element.remove_class("mx-request")
-      let error = if error_message.contains("abort") ||
-        error_message.contains("Abort") {
-        abort_error(task.url)
-      } else {
-        network_error_for_element(
-          task.url,
-          error_message,
-          describe_element(element),
-        )
+      let error = match error_type {
+        @network.FetchErrorType::Abort => abort_error(task.url)
+        @network.FetchErrorType::Network | @network.FetchErrorType::Unknown =>
+          network_error_for_element(
+            task.url,
+            error_message,
+            describe_element(element),
+          )
       }
-      emit_lifecycle_event(
-        element,
-        "mhx:afterRequest",
-        request_event_detail(element, task, trigger, "failed", error~),
+      ignore(
+        element.dispatch_request_event(
+          "afterRequest",
+          task.url,
+          task.options.http_method,
+          trigger.to_string(),
+          describe_element(element),
+          "",
+          error.category(),
+          error.message(),
+        ),
       )
       report_element_error(element, error)
       self.finish_request(element, task, config, trigger)
@@ -818,34 +794,41 @@ fn Mhx::handle_response(
 ) -> Unit {
   element.remove_class("mx-request")
   if response.ok() {
-    emit_lifecycle_event(
-      element,
-      "mhx:afterRequest",
-      request_event_detail(
-        element,
-        task,
-        trigger,
-        "completed",
-        status=response.status(),
+    ignore(
+      element.dispatch_request_event(
+        "afterRequest",
+        task.url,
+        task.options.http_method,
+        trigger.to_string(),
+        describe_element(element),
+        response.status().to_string(),
+        "",
+        "",
       ),
     )
     let swap_options = get_swap_options(element, config)
     match resolve_swap_target_from_trigger(element, trigger, config) {
       Some(swap_target) => {
-        emit_lifecycle_event(
-          element,
-          "mhx:beforeSwap",
-          swap_event_detail(element, swap_target, trigger, swap_options),
+        ignore(
+          element.dispatch_swap_event(
+            "swapping",
+            trigger.to_string(),
+            swap_options.to_string(),
+            describe_element(element),
+            describe_element(swap_target),
+          ),
         )
         @swap.perform_swap(swap_target, response.text(), swap_options)
         self.process_tree(swap_target)
-        emit_lifecycle_event(element, "mhx:afterSwap", {
-          "phase": "completed".to_json(),
-          "trigger": trigger.to_string().to_json(),
-          "strategy": swap_options.to_string().to_json(),
-          "sourceElement": describe_element(element).to_json(),
-          "target": describe_element(swap_target).to_json(),
-        })
+        ignore(
+          element.dispatch_swap_event(
+            "completed",
+            trigger.to_string(),
+            swap_options.to_string(),
+            describe_element(element),
+            describe_element(swap_target),
+          ),
+        )
       }
       None =>
         report_element_error(
@@ -864,16 +847,16 @@ fn Mhx::handle_response(
       message,
       describe_element(element),
     )
-    emit_lifecycle_event(
-      element,
-      "mhx:afterRequest",
-      request_event_detail(
-        element,
-        task,
-        trigger,
-        "failed",
-        status=response.status(),
-        error~,
+    ignore(
+      element.dispatch_request_event(
+        "afterRequest",
+        task.url,
+        task.options.http_method,
+        trigger.to_string(),
+        describe_element(element),
+        response.status().to_string(),
+        error.category(),
+        error.message(),
       ),
     )
     report_element_error(element, error)

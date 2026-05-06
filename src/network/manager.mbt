@@ -61,7 +61,12 @@ pub fn RequestTask::clear_callback(self : RequestTask) -> Unit {
 }
 
 ///|
-/// Cancel this task
+/// Cancel this task.
+///
+/// Sets a local cancellation flag and propagates to JS via cancel_fetch(callback_id),
+/// which calls AbortController.abort() on the stored JS-side controller.
+/// This avoids requiring the MoonBit-side AbortController FFI signal propagation;
+/// the abort is routed through the callback-id registry instead.
 pub fn RequestTask::cancel(self : RequestTask) -> Unit {
   self.cancelled = true
   if self.callback_id > 0 {

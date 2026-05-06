@@ -64,6 +64,58 @@ Nested objects and arrays are rejected with `MHX_CONFIG_ERROR`. `mhx` does not e
 - runtime contract validation surfaces stable `MHX_VALIDATE_*` codes for conflicting methods, empty URLs, and queue/sync overlap
 - missing swap targets are runtime selector errors, not parse errors; see [swap contract](./swap-contract.md)
 
+## Error code catalog
+
+mhx exposes a stable error code on every `MhxError`. The `code()` method returns one of the following strings. Consumers should match on `code()` rather than `message()`, which may change between versions.
+
+### Parse errors (`MHX_PARSE_*`)
+
+These originate from the `mx-trigger` parser and carry a `position` field with the source offset and context.
+
+| Code | Meaning |
+| --- | --- |
+| `MHX_PARSE_UNEXPECTED_CHAR` | Unexpected character while parsing trigger syntax |
+| `MHX_PARSE_UNEXPECTED_END` | Unexpected end of input while parsing trigger syntax |
+| `MHX_PARSE_INVALID_NUMBER` | Invalid numeric literal in trigger modifier |
+| `MHX_PARSE_INVALID_MODIFIER` | Unknown trigger modifier name |
+| `MHX_PARSE_INVALID_SELECTOR` | Invalid selector in trigger target |
+
+### Validation errors (`MHX_VALIDATE_*`)
+
+These are configuration-level checks that run before request execution. They carry `position=None` because they are not parser errors.
+
+| Code | Meaning |
+| --- | --- |
+| `MHX_VALIDATE_CONFLICTING_REQUEST_METHODS` | Element has more than one request method attribute (`mx-get`, `mx-post`, etc.) |
+| `MHX_VALIDATE_EMPTY_REQUEST_URL` | The request URL on a method attribute is empty |
+| `MHX_VALIDATE_TRIGGER_SYNC_CONFLICT` | A trigger-local queue modifier conflicts with `mx-sync="queue ..."` |
+
+### Runtime errors
+
+| Code | Meaning |
+| --- | --- |
+| `MHX_NETWORK_ERROR` | Network request failed (non-abort, non-timeout) |
+| `MHX_TIMEOUT_ERROR` | Request exceeded the timeout threshold |
+| `MHX_ABORT_ERROR` | Request was cancelled (abort) |
+| `MHX_DOM_ERROR` | DOM operation failed |
+| `MHX_CONFIG_ERROR` | Generic configuration error (fallback for unspecified contract violations) |
+| `MHX_SELECTOR_TARGET_NOT_FOUND` | Swap target selector did not match any DOM element |
+| `MHX_SWAP_ERROR` | Swap operation failed |
+| `MHX_FFI_ERROR` | JavaScript FFI bridge error |
+| `MHX_INTERNAL_ERROR` | Internal runtime error |
+
+### Error structure
+
+Every `MhxError` exposes:
+
+- `category()` – the variant name (`"ParseError"`, `"ConfigError"`, etc.)
+- `code()` – the stable code string from the table above
+- `message()` – human-readable description (not stable across versions)
+- `attribute()` – the `mx-*` attribute that caused the error, if applicable
+- `position()` – parser position, only for `ParseError` and config errors that originate from parsing
+- `source_element()` – a description of the DOM element that triggered the error
+- `recoverable()` / `recovery_strategy()` – whether the runtime can continue processing other elements
+
 ## Future compatibility policy
 
 - new attributes must be documented here before they are considered stable

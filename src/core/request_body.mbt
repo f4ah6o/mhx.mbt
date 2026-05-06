@@ -98,11 +98,11 @@ fn parse_form_encoded(body : String) -> Array[(String, String)] {
     }
     match part.find("=") {
       Some(idx) => {
-        let key = part.view(end_offset=idx).to_string()
-        let value = part.view(start_offset=idx + 1).to_string()
+        let key = part.view(end_offset=idx).to_owned()
+        let value = part.view(start_offset=idx + 1).to_owned()
         pairs.push((decode_url_component(key), decode_url_component(value)))
       }
-      None => pairs.push((decode_url_component(part.to_string()), ""))
+      None => pairs.push((decode_url_component(part.to_owned()), ""))
     }
   }
   pairs
@@ -112,7 +112,7 @@ fn parse_form_encoded(body : String) -> Array[(String, String)] {
 /// Parse mx-vals JSON into pairs (flat object only)
 fn parse_mx_vals_pairs(mx_vals_json : String) -> Array[(String, String)] {
   let pairs : Array[(String, String)] = []
-  let trimmed = mx_vals_json.trim().to_string()
+  let trimmed = mx_vals_json.trim().to_owned()
   if trimmed.is_empty() {
     return pairs
   }
@@ -122,19 +122,19 @@ fn parse_mx_vals_pairs(mx_vals_json : String) -> Array[(String, String)] {
   }
   let inner = trimmed
     .view(start_offset=1, end_offset=trimmed.length() - 1)
-    .to_string()
+    .to_owned()
   if inner.trim().is_empty() {
     return pairs
   }
   for part in split_json_pairs(inner) {
     match part.find(":") {
       Some(idx) => {
-        let raw_key = part.view(end_offset=idx).to_string().trim().to_string()
+        let raw_key = part.view(end_offset=idx).to_owned().trim().to_owned()
         let raw_val = part
           .view(start_offset=idx + 1)
-          .to_string()
+          .to_owned()
           .trim()
-          .to_string()
+          .to_owned()
         let key = match parse_json_string(raw_key) {
           Some(k) => k
           None => {
@@ -185,26 +185,26 @@ fn split_json_pairs(input : String) -> Array[String] {
       } else if c == '}' || c == ']' {
         depth -= 1
       } else if c == ',' && depth == 0 {
-        parts.push(input.view(start_offset=start, end_offset=i).to_string())
+        parts.push(input.view(start_offset=start, end_offset=i).to_owned())
         start = i + 1
       }
     }
     i += 1
   }
   if start < len {
-    parts.push(input.view(start_offset=start).to_string())
+    parts.push(input.view(start_offset=start).to_owned())
   }
-  parts.map(fn(p) { p.trim().to_string() })
+  parts.map(fn(p) { p.trim().to_owned() })
 }
 
 ///|
 /// Parse a JSON string literal
 fn parse_json_string(raw : String) -> String? {
-  let t = raw.trim().to_string()
+  let t = raw.trim().to_owned()
   if t.length() < 2 || t[0] != '"' || t[t.length() - 1] != '"' {
     None
   } else {
-    let inner = t.view(start_offset=1, end_offset=t.length() - 1).to_string()
+    let inner = t.view(start_offset=1, end_offset=t.length() - 1).to_owned()
     Some(unescape_json_string(inner))
   }
 }
@@ -212,7 +212,7 @@ fn parse_json_string(raw : String) -> String? {
 ///|
 /// Parse a JSON value (string/number/bool/null)
 fn parse_json_value(raw : String) -> String? {
-  let t = raw.trim().to_string()
+  let t = raw.trim().to_owned()
   if t.has_prefix("\"") {
     parse_json_string(t)
   } else if t.has_prefix("{") || t.has_prefix("[") {
@@ -282,7 +282,7 @@ fn decode_url_component(value : String) -> String {
       sb.write_char(' ')
       i += 1
     } else if c == '%' && i + 2 < value.length() {
-      let hex = value.view(start_offset=i + 1, end_offset=i + 3).to_string()
+      let hex = value.view(start_offset=i + 1, end_offset=i + 3).to_owned()
       match parse_hex_byte(hex) {
         Some(b) => {
           sb.write_char(char_from_byte(b))

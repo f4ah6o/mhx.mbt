@@ -8,8 +8,14 @@ test "config issues preserve stable structured fields" {
     Some("#save"),
   )
   inspect(error.code(), content="MHX_VALIDATE_EMPTY_REQUEST_URL")
-  inspect(error.attribute(), content="Some(\"mx-get\")")
-  inspect(error.source_element(), content="Some(\"#save\")")
+  match error.attribute() {
+    Some(attr) => inspect(attr, content="mx-get")
+    None => fail("expected attribute to be Some")
+  }
+  match error.source_element() {
+    Some(el) => inspect(el, content="#save")
+    None => fail("expected source_element to be Some")
+  }
   json_inspect(error, content={
     "category": "ConfigError",
     "code": "MHX_VALIDATE_EMPTY_REQUEST_URL",
@@ -31,7 +37,10 @@ test "parse errors expose stable codes and positions" {
     Err(err) => {
       let wrapped = from_parse_error(err)
       inspect(wrapped.code(), content="MHX_PARSE_UNEXPECTED_END")
-      inspect(wrapped.attribute(), content="Some(\"mx-trigger\")")
+      match wrapped.attribute() {
+        Some(attr) => inspect(attr, content="mx-trigger")
+        None => fail("expected attribute to be Some")
+      }
       json_inspect(wrapped.position(), content=[
         { "offset": 7, "char": "\u0000" },
       ])
@@ -48,5 +57,8 @@ test "selector errors report a stable source element" {
     code="MHX_PARSE_INVALID_SELECTOR",
   )
   inspect(error.code(), content="MHX_PARSE_INVALID_SELECTOR")
-  inspect(error.source_element(), content="Some(\"#source\")")
+  match error.source_element() {
+    Some(el) => inspect(el, content="#source")
+    None => fail("expected source_element to be Some")
+  }
 }

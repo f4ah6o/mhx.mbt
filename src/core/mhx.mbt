@@ -248,7 +248,7 @@ fn validate_target_selector(
   selector : String,
   source_element : String?,
 ) -> MhxError? {
-  let trimmed = selector.trim().to_string()
+  let trimmed = selector.trim().to_owned()
   if trimmed.is_empty() {
     return Some(
       selector_error(
@@ -635,7 +635,7 @@ fn maybe_push_url(element : @ffi.Element, url : String) -> Unit {
   if !element.has_attribute("mx-push-url") {
     return
   }
-  let raw = element.get_attribute("mx-push-url").trim().to_string()
+  let raw = element.get_attribute("mx-push-url").trim().to_owned()
   if raw == "false" {
     return
   }

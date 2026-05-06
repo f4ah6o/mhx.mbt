@@ -130,7 +130,7 @@ fn resolve_swap_target_string(
   element : @ffi.Element,
   selector : String,
 ) -> @ffi.Element? {
-  let trimmed = selector.trim().to_string()
+  let trimmed = selector.trim().to_owned()
   if trimmed.is_empty() {
     return None
   }
@@ -144,7 +144,7 @@ fn resolve_swap_target_string(
   } else if trimmed == "window" {
     None
   } else if trimmed.has_prefix("closest ") {
-    let inner = trimmed.view(start_offset=8).to_string().trim().to_string()
+    let inner = trimmed.view(start_offset=8).to_owned().trim().to_owned()
     if inner.is_empty() {
       None
     } else if element.closest_exists(inner) {
@@ -153,7 +153,7 @@ fn resolve_swap_target_string(
       None
     }
   } else if trimmed.has_prefix("find ") {
-    let inner = trimmed.view(start_offset=5).to_string().trim().to_string()
+    let inner = trimmed.view(start_offset=5).to_owned().trim().to_owned()
     if inner.is_empty() {
       None
     } else if element.query_selector_exists(inner) {
@@ -162,10 +162,10 @@ fn resolve_swap_target_string(
       None
     }
   } else if trimmed.has_prefix("next ") {
-    let inner = trimmed.view(start_offset=5).to_string().trim().to_string()
+    let inner = trimmed.view(start_offset=5).to_owned().trim().to_owned()
     find_adjacent_sibling(element, inner, true)
   } else if trimmed.has_prefix("previous ") {
-    let inner = trimmed.view(start_offset=9).to_string().trim().to_string()
+    let inner = trimmed.view(start_offset=9).to_owned().trim().to_owned()
     find_adjacent_sibling(element, inner, false)
   } else if doc.query_selector_exists(trimmed) {
     Some(doc.query_selector_ffi(trimmed))

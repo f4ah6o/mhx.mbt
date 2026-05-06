@@ -12,6 +12,6 @@ for MoonBit/Wasm, inspired by htmx.
 ```mbt check
 ///|
 test {
-  inspect(@mhx.version, content="0.1.0")
+  inspect(@mhx.version, content="0.1.1")
 }
 ```

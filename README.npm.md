@@ -1,8 +1,6 @@
-# mhx
+# mhx npm package contract
 
-MoonBit Hypermedia X (mhx) is a type-safe Hypermedia-Driven Architecture (HDA)
-library for the browser, inspired by htmx. It uses `mx-*` attributes to declare
-hypermedia behavior and runs as a compact JS runtime compiled from MoonBit.
+`mhx` publishes a browser runtime bundle for `mx-*` hypermedia attributes.
 
 ## Install
 
@@ -10,78 +8,29 @@ hypermedia behavior and runs as a compact JS runtime compiled from MoonBit.
 npm install mhx
 ```
 
-## Usage
+## ESM contract
 
-Import the runtime and initialize it once on startup. The npm entry already
-initializes the FFI glue.
+The package supports both default and named ESM imports:
 
 ```js
-import mhx, { init_mhx } from "mhx";
+import mhx, { init_mhx, process, handle_event, version } from "mhx";
 
 init_mhx();
+console.log(version);
+process(document.body);
 ```
 
-### HTML Attributes
+Stable ESM exports are:
 
-mhx uses `mx-*` attributes (not `hx-*`) to define hypermedia behaviors:
+- `default`
+- `init_mhx`
+- `process`
+- `handle_event`
+- `version`
 
-```html
-<!-- Simple GET request -->
-<button mx-get="/api/data" mx-target="#result">
-  Load Data
-</button>
+Internal callback hooks are intentionally **not** exported.
 
-<!-- POST with trigger modifiers -->
-<form mx-post="/api/submit" mx-trigger="submit" mx-swap="outerHTML">
-  <input name="email" type="email" />
-  <button type="submit">Submit</button>
-</form>
-
-<!-- Click with delay and filter -->
-<button mx-get="/api/action" mx-trigger="click[ctrlKey] delay:500ms">
-  Ctrl+Click (with 500ms delay)
-</button>
-
-<!-- Debounced input -->
-<input
-  mx-get="/api/search"
-  mx-trigger="input changed debounce:300ms"
-  mx-target="#search-results"
-  name="q"
-/>
-```
-
-## API
-
-The npm entry exports the following helpers:
-
-- `init_mhx()` - initialize mhx (call once after DOM is ready)
-- `process(element)` - process newly added elements
-- `handle_event(event)` - manually dispatch an event
-- `get_instance()` - access the internal singleton instance
-- `version` - runtime version string
-
-```js
-import { process } from "mhx";
-
-const node = document.querySelector("#new-content");
-process(node);
-```
-
-## Build from Source
-
-```bash
-pnpm build
-```
-
-This builds a single bundled file for each format:
-
-- `dist/mhx.esm.js` - ES Module format
-- `dist/mhx.umd.js` - UMD format (for script tags)
-
-## CDN Usage
-
-You can load mhx directly from a CDN without npm:
+## UMD / script tag contract
 
 ```html
 <script src="https://unpkg.com/mhx/dist/mhx.umd.js"></script>
@@ -91,33 +40,64 @@ You can load mhx directly from a CDN without npm:
 </script>
 ```
 
-## Migration Guide
+## Published files
 
-### From v2026.1.19 or earlier
+The published package is limited to:
 
-The package structure has changed to use single-file bundles.
+- `dist/mhx.esm.js`
+- `dist/mhx.umd.js`
+- `README.md`
+- `README.mbt.md`
+- `README.npm.md`
+- `LICENSE`
+- npm-generated `package.json`
 
-**Before (v2026.1.19):**
+`pnpm build` verifies this contract via `npm pack --dry-run --json`.
 
-```js
-// Entry point was npm/index.js which imported from dist/
-import mhx from "mhx";
-import ffi from "mhx/ffi"; // Separate FFI import was available
+## TypeScript / side effects
+
+- TypeScript declaration files are **not** published yet
+- the package is marked with `sideEffects: true` because import-time FFI bootstrap wiring is intentional
+
+## Browser compatibility
+
+Current target assumptions:
+
+- modern browsers with ES modules or classic script execution
+- `fetch`, `AbortController`, `CustomEvent`, `MutationObserver`, `FormData`, and `URLSearchParams`
+
+If you need older browsers, provide your own polyfills before loading `mhx`.
+
+## Security notes
+
+- `mhx` does not sanitize fetched HTML
+- `mhx` treats fetched fragments as trusted application output
+- `mx-vals` accepts only flat JSON scalar values
+
+See [docs/security.md](https://github.com/f4ah6o/mhx.mbt/blob/main/docs/security.md).
+
+## Versioning
+
+This repository intentionally uses separate version domains:
+
+- MoonBit package version: `moon.mod.json` / `@mhx.version`
+- npm runtime version: `package.json.version` / JS `version` export
+
+See [docs/versioning.md](https://github.com/f4ah6o/mhx.mbt/blob/main/docs/versioning.md).
+
+## Minimal vanilla HTML example
+
+```html
+<!doctype html>
+<html lang="en">
+  <body>
+    <button mx-get="/fragments/hello" mx-target="#result">Load</button>
+    <div id="result"></div>
+
+    <script type="module">
+      import { init_mhx } from "https://unpkg.com/mhx/dist/mhx.esm.js";
+      init_mhx();
+    </script>
+  </body>
+</html>
 ```
-
-**After (v2026.1.20+):**
-
-```js
-// Single bundled entry point - FFI is included
-import mhx from "mhx";
-```
-
-**Key changes:**
-
-- The `mhx/ffi` export has been removed (FFI is now bundled)
-- All functionality is in a single file per format
-- UMD build available for direct `<script>` tag usage
-
-## License
-
-Apache-2.0

@@ -81,22 +81,12 @@ pub fn Mhx::process_tree(self : Mhx, root : @ffi.Element) -> Unit {
 ///|
 /// Process a single element with mx-* attributes
 pub fn Mhx::process_element(self : Mhx, element : @ffi.Element) -> Unit {
-  // Generate element hash (using tag name + id as simple hash)
   let element_hash = hash_element(element)
   let element_id = self.cache.get_element_id(element_hash)
-  // Skip if already processed
   if self.cache.has(element_id) {
     return
   }
-  // Parse configuration
-  let config : @event.ElementConfig = @event.parse_element_config(element) catch {
-    err => {
-      report_error(from_parse_error(err))
-      return
-    }
-  }
-  // Store configuration
-  self.cache.set(element_id, config)
+  ignore(self.load_config(element, element_id))
 }
 
 ///|
@@ -239,6 +229,240 @@ fn hash_element(element : @ffi.Element) -> Int {
 }
 
 ///|
+let request_attribute_names : Array[String] = [
+  "mx-get", "mx-post", "mx-put", "mx-patch", "mx-delete",
+]
+
+///|
+fn describe_element(element : @ffi.Element) -> String {
+  let id = element.id()
+  if id.is_empty() {
+    element.tag_name().to_lower()
+  } else {
+    "#" + id
+  }
+}
+
+///|
+fn validate_target_selector(
+  selector : String,
+  source_element : String?,
+) -> MhxError? {
+  let trimmed = selector.trim().to_owned()
+  if trimmed.is_empty() {
+    return Some(
+      selector_error(
+        selector,
+        "Selector must not be empty",
+        source_element,
+        code="MHX_PARSE_INVALID_SELECTOR",
+      ),
+    )
+  }
+  match trimmed {
+    "closest" =>
+      Some(
+        selector_error(
+          selector,
+          "Extended selector `closest` requires a trailing selector",
+          source_element,
+          code="MHX_PARSE_INVALID_SELECTOR",
+        ),
+      )
+    "find" =>
+      Some(
+        selector_error(
+          selector,
+          "Extended selector `find` requires a trailing selector",
+          source_element,
+          code="MHX_PARSE_INVALID_SELECTOR",
+        ),
+      )
+    "next" =>
+      Some(
+        selector_error(
+          selector,
+          "Extended selector `next` requires a trailing selector",
+          source_element,
+          code="MHX_PARSE_INVALID_SELECTOR",
+        ),
+      )
+    "previous" =>
+      Some(
+        selector_error(
+          selector,
+          "Extended selector `previous` requires a trailing selector",
+          source_element,
+          code="MHX_PARSE_INVALID_SELECTOR",
+        ),
+      )
+    _ => None
+  }
+}
+
+///|
+fn first_validation_error(element : @ffi.Element) -> MhxError? {
+  let source_element = Some(describe_element(element))
+  let request_attrs : Array[(String, String)] = []
+  for name in request_attribute_names {
+    if element.has_attribute(name) {
+      request_attrs.push((name, element.get_attribute(name)))
+    }
+  }
+  if request_attrs.length() > 1 {
+    return Some(
+      config_issue_error(
+        "MHX_VALIDATE_CONFLICTING_REQUEST_METHODS",
+        "attributes",
+        "Element bundle contains multiple request method attributes",
+        None,
+        source_element,
+      ),
+    )
+  }
+  for entry in request_attrs {
+    let (name, value) = entry
+    if value.trim().is_empty() {
+      return Some(
+        config_issue_error(
+          "MHX_VALIDATE_EMPTY_REQUEST_URL",
+          name,
+          "Request URL must not be empty",
+          None,
+          source_element,
+        ),
+      )
+    }
+  }
+  if element.has_attribute("mx-target") {
+    match
+      validate_target_selector(
+        element.get_attribute("mx-target"),
+        source_element,
+      ) {
+      Some(error) => return Some(error)
+      None => ()
+    }
+  }
+  None
+}
+
+///|
+fn validate_config_triggers(
+  element : @ffi.Element,
+  config : @event.ElementConfig,
+) -> MhxError? {
+  let source_element = Some(describe_element(element))
+  if element.has_attribute("mx-sync") {
+    match @sync.parse_sync_strategy(element.get_attribute("mx-sync")) {
+      @sync.SyncStrategy::Queue(_) =>
+        if config.triggers
+          .iter()
+          .any(fn(trigger) {
+            trigger.get_queue_mode() != @trigger.QueueMode::Drop
+          }) {
+          return Some(
+            config_issue_error(
+              "MHX_VALIDATE_TRIGGER_SYNC_CONFLICT",
+              "mx-sync",
+              "Trigger queue modifiers overlap with sync queue strategy",
+              None,
+              source_element,
+            ),
+          )
+        }
+      _ => ()
+    }
+  }
+  None
+}
+
+///|
+fn emit_lifecycle_event(
+  element : @ffi.Element,
+  event_name : String,
+  detail : Json,
+) -> Unit {
+  let error_message = element.dispatch_mhx_event(event_name, detail.stringify())
+  if !error_message.is_empty() {
+    report_error(ffi_error("element.dispatch_mhx_event", error_message))
+  }
+}
+
+///|
+fn report_element_error(element : @ffi.Element, error : MhxError) -> Unit {
+  report_error(error)
+  emit_lifecycle_event(element, "mhx:error", {
+    "error": error.to_json(),
+    "sourceElement": describe_element(element).to_json(),
+  })
+}
+
+///|
+fn requested_swap_target_spec(
+  trigger : @trigger.TriggerDef,
+  config : @event.ElementConfig,
+) -> String {
+  match trigger.get_target() {
+    Some(selector) => selector.to_string()
+    None =>
+      match config.target {
+        Some(selector) => selector
+        None => "this"
+      }
+  }
+}
+
+///|
+fn Mhx::load_config(
+  self : Mhx,
+  element : @ffi.Element,
+  element_id : Int,
+) -> @event.ElementConfig? {
+  match self.cache.get(element_id) {
+    Some(config) => Some(config)
+    None =>
+      match first_validation_error(element) {
+        Some(error) => {
+          report_element_error(element, error)
+          None
+        }
+        None => {
+          let parsed : @event.ElementConfig? = Some(
+            @event.parse_element_config(element),
+          ) catch {
+            err => {
+              report_element_error(
+                element,
+                config_issue_from_parse_error(
+                  err,
+                  "mx-trigger",
+                  Some(describe_element(element)),
+                ),
+              )
+              None
+            }
+          }
+          match parsed {
+            Some(config) =>
+              match validate_config_triggers(element, config) {
+                Some(error) => {
+                  report_element_error(element, error)
+                  None
+                }
+                None => {
+                  self.cache.set(element_id, config)
+                  Some(config)
+                }
+              }
+            None => None
+          }
+        }
+      }
+  }
+}
+
+///|
 /// Handle an event (called from JS event listener)
 pub fn Mhx::handle_event(
   self : Mhx,
@@ -257,27 +481,7 @@ pub fn Mhx::handle_event(
       // Get or create configuration
       let element_hash = hash_element(current)
       let element_id = self.cache.get_element_id(element_hash)
-      let config : @event.ElementConfig? = match self.cache.get(element_id) {
-        Some(c) => Some(c)
-        None => {
-          // Parse and cache on first access
-          let parsed : @event.ElementConfig? = Some(
-            @event.parse_element_config(current),
-          ) catch {
-            err => {
-              report_error(from_parse_error(err))
-              None
-            }
-          }
-          match parsed {
-            Some(c) => {
-              self.cache.set(element_id, c)
-              Some(c)
-            }
-            None => None
-          }
-        }
-      }
+      let config : @event.ElementConfig? = self.load_config(current, element_id)
       match config {
         Some(cfg) =>
           // Check if any trigger matches this event
@@ -431,7 +635,7 @@ fn maybe_push_url(element : @ffi.Element, url : String) -> Unit {
   if !element.has_attribute("mx-push-url") {
     return
   }
-  let raw = element.get_attribute("mx-push-url").trim().to_string()
+  let raw = element.get_attribute("mx-push-url").trim().to_owned()
   if raw == "false" {
     return
   }
@@ -530,18 +734,52 @@ fn Mhx::execute_request(
   config : @event.ElementConfig,
   trigger : @trigger.TriggerDef,
 ) -> Unit {
-  let _callback_id = @network.fetch_async(
+  ignore(
+    element.dispatch_request_event(
+      "in_flight",
+      task.url,
+      task.options.http_method,
+      trigger.to_string(),
+      describe_element(element),
+      "",
+      "",
+      "",
+    ),
+  )
+  let callback_id = @network.fetch_async(
     task.url,
     task.options,
     fn(response) {
       self.handle_response(element, task, config, trigger, response)
     },
-    fn(error_message) {
+    fn(error_type, error_message) {
       element.remove_class("mx-request")
-      report_error(network_error(task.url, error_message))
+      let error = match error_type {
+        @network.FetchErrorType::Abort => abort_error(task.url)
+        @network.FetchErrorType::Network | @network.FetchErrorType::Unknown =>
+          network_error_for_element(
+            task.url,
+            error_message,
+            describe_element(element),
+          )
+      }
+      ignore(
+        element.dispatch_request_event(
+          "afterRequest",
+          task.url,
+          task.options.http_method,
+          trigger.to_string(),
+          describe_element(element),
+          "",
+          error.category(),
+          error.message(),
+        ),
+      )
+      report_element_error(element, error)
       self.finish_request(element, task, config, trigger)
     },
   )
+  task.attach_callback(callback_id)
 }
 
 ///|
@@ -556,13 +794,72 @@ fn Mhx::handle_response(
 ) -> Unit {
   element.remove_class("mx-request")
   if response.ok() {
-    let swap_target = resolve_swap_target_from_trigger(element, trigger, config)
+    ignore(
+      element.dispatch_request_event(
+        "afterRequest",
+        task.url,
+        task.options.http_method,
+        trigger.to_string(),
+        describe_element(element),
+        response.status().to_string(),
+        "",
+        "",
+      ),
+    )
     let swap_options = get_swap_options(element, config)
-    @swap.perform_swap(swap_target, response.text(), swap_options)
-    self.process_tree(swap_target)
+    match resolve_swap_target_from_trigger(element, trigger, config) {
+      Some(swap_target) => {
+        ignore(
+          element.dispatch_swap_event(
+            "swapping",
+            trigger.to_string(),
+            swap_options.to_string(),
+            describe_element(element),
+            describe_element(swap_target),
+          ),
+        )
+        @swap.perform_swap(swap_target, response.text(), swap_options)
+        self.process_tree(swap_target)
+        ignore(
+          element.dispatch_swap_event(
+            "completed",
+            trigger.to_string(),
+            swap_options.to_string(),
+            describe_element(element),
+            describe_element(swap_target),
+          ),
+        )
+      }
+      None =>
+        report_element_error(
+          element,
+          selector_error(
+            requested_swap_target_spec(trigger, config),
+            "No DOM element matched the requested swap target",
+            Some(describe_element(element)),
+          ),
+        )
+    }
   } else {
     let message = response.status().to_string() + " " + response.status_text()
-    report_error(network_error(task.url, message))
+    let error = network_error_for_element(
+      task.url,
+      message,
+      describe_element(element),
+    )
+    ignore(
+      element.dispatch_request_event(
+        "afterRequest",
+        task.url,
+        task.options.http_method,
+        trigger.to_string(),
+        describe_element(element),
+        response.status().to_string(),
+        error.category(),
+        error.message(),
+      ),
+    )
+    report_element_error(element, error)
   }
   self.finish_request(element, task, config, trigger)
 }
@@ -576,49 +873,13 @@ fn Mhx::finish_request(
   config : @event.ElementConfig,
   trigger : @trigger.TriggerDef,
 ) -> Unit {
+  task.clear_callback()
   let element_hash = hash_element(element)
   let element_id = self.cache.get_element_id(element_hash)
   let next = self.request_manager.complete(element_id, task.id)
   match next {
     Some(next_task) => self.execute_request(element, next_task, config, trigger)
     None => ()
-  }
-}
-
-///|
-/// Resolve the swap target element
-fn resolve_swap_target(
-  element : @ffi.Element,
-  config : @event.ElementConfig,
-) -> @ffi.Element {
-  match config.target {
-    Some(selector) =>
-      // Parse target selector
-      if selector == "this" {
-        element
-      } else if selector.has_prefix("closest ") {
-        let sel = selector.view(start_offset=8).to_string()
-        if element.closest_exists(sel) {
-          element.closest_ffi(sel)
-        } else {
-          element
-        }
-      } else if selector.has_prefix("find ") {
-        let sel = selector.view(start_offset=5).to_string()
-        if element.query_selector_exists(sel) {
-          element.query_selector_ffi(sel)
-        } else {
-          element
-        }
-      } else {
-        let doc = @ffi.document()
-        if doc.query_selector_exists(selector) {
-          doc.query_selector_ffi(selector)
-        } else {
-          element
-        }
-      }
-    None => element
   }
 }
 

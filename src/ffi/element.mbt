@@ -159,3 +159,40 @@ pub fn Element::value(self : Element) -> String = "mhx_ffi" "element_value"
 ///|
 /// Set the value (for form elements)
 pub fn Element::set_value(self : Element, value : String) -> Unit = "mhx_ffi" "element_set_value"
+
+///|
+/// Dispatch an `mhx:*` CustomEvent with a JSON detail payload.
+/// Returns an empty string on success or an error message on failure.
+pub fn Element::dispatch_mhx_event(
+  self : Element,
+  event_name : String,
+  detail_json : String,
+) -> String = "mhx_ffi" "element_dispatch_mhx_event"
+
+///|
+/// Dispatch a request lifecycle event by building the detail object directly in JS.
+/// Avoids the JSON.stringify round-trip for high-frequency request events.
+/// Pass empty strings for status/error args when not applicable.
+pub fn Element::dispatch_request_event(
+  self : Element,
+  phase : String,
+  url : String,
+  http_method : String,
+  trigger : String,
+  source_element : String,
+  status : String,
+  error_category : String,
+  error_message : String,
+) -> String = "mhx_ffi" "element_dispatch_request_event"
+
+///|
+/// Dispatch a swap lifecycle event by building the detail object directly in JS.
+/// Avoids the JSON.stringify round-trip for high-frequency swap events.
+pub fn Element::dispatch_swap_event(
+  self : Element,
+  phase : String,
+  trigger : String,
+  strategy : String,
+  source_element : String,
+  target : String,
+) -> String = "mhx_ffi" "element_dispatch_swap_event"

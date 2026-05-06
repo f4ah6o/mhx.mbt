@@ -25,10 +25,21 @@ Add to your `moon.mod.json`:
 ```json
 {
   "deps": {
-    "f4ah6o/mhx": "0.1.0"
+    "f4ah6o/mhx": "0.1.1"
   }
 }
 ```
+
+## Contracts and boundaries
+
+- [Attribute contract](./docs/attribute-contract.md)
+- [Trigger spec](./docs/trigger-spec.md)
+- [Request lifecycle](./docs/request-lifecycle.md)
+- [Swap contract](./docs/swap-contract.md)
+- [Security boundary](./docs/security.md)
+- [FFI boundary](./docs/ffi-boundary.md)
+- [Architecture boundaries](./docs/architecture.md)
+- [Versioning policy](./docs/versioning.md)
 
 ## Usage
 
@@ -182,10 +193,7 @@ let element = document.query_selector("#new-content")
 // Set custom error handler
 @core.set_error_handler(fn(error : MhxError) {
   match error {
-    Parse(msg, pos) => console.error("Parse error: " + msg)
-    Network(status, msg) => console.error("Network error: " + msg)
-    Timeout => console.error("Request timed out")
-    _ => console.error("Error: " + error.to_string())
+     _ => console.error(error.code() + ": " + error.message())
   }
 })
 ```

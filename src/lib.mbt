@@ -7,4 +7,4 @@
 
 ///|
 /// Library version
-pub let version : String = "0.1.0"
+pub let version : String = "0.1.1"

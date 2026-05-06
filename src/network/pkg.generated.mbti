@@ -9,13 +9,15 @@ import {
 // Values
 pub fn cancel_fetch(Int) -> Unit
 
-pub fn fetch_async(String, RequestOptions, (Response) -> Unit, (String) -> Unit) -> Int
+pub fn fetch_async(String, RequestOptions, (Response) -> Unit, (FetchErrorType, String) -> Unit) -> Int
 
 pub fn fetch_task(String, RequestOptions) -> FetchTask
 
-pub fn on_fetch_error(Int, String) -> Unit
+pub fn on_fetch_error(Int, String, String) -> Unit
 
 pub fn on_fetch_success(Int, String) -> Unit
+
+pub fn parse_error_type(String) -> FetchErrorType
 
 // Errors
 
@@ -25,7 +27,13 @@ pub(all) struct FetchCallback {
 }
 
 pub(all) struct FetchErrorCallback {
-  on_error : (String) -> Unit
+  on_error : (FetchErrorType, String) -> Unit
+}
+
+pub(all) enum FetchErrorType {
+  Network
+  Abort
+  Unknown
 }
 
 pub(all) enum FetchResult {
@@ -79,10 +87,13 @@ pub(all) struct RequestTask {
   element_id : Int
   url : String
   options : RequestOptions
-  controller : @ffi.AbortController
+  mut cancelled : Bool
+  mut callback_id : Int
   sync_strategy : @sync.SyncStrategy
 }
+pub fn RequestTask::attach_callback(Self, Int) -> Unit
 pub fn RequestTask::cancel(Self) -> Unit
+pub fn RequestTask::clear_callback(Self) -> Unit
 pub fn RequestTask::is_cancelled(Self) -> Bool
 pub fn RequestTask::new(Int, Int, String, RequestOptions, @sync.SyncStrategy) -> Self
 

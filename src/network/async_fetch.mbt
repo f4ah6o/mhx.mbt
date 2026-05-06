@@ -9,9 +9,17 @@ pub(all) struct FetchCallback {
 }
 
 ///|
+/// Fetch error category returned by the JS bridge.
+pub(all) enum FetchErrorType {
+  Network
+  Abort
+  Unknown
+}
+
+///|
 /// Callback type for fetch error
 pub(all) struct FetchErrorCallback {
-  on_error : (String) -> Unit
+  on_error : (FetchErrorType, String) -> Unit
 }
 
 ///|
@@ -70,11 +78,26 @@ pub fn on_fetch_success(callback_id : Int, response_text : String) -> Unit {
 }
 
 ///|
+/// Parse the error type string from JS into FetchErrorType.
+pub fn parse_error_type(error_type : String) -> FetchErrorType {
+  match error_type {
+    "abort" => FetchErrorType::Abort
+    "network" => FetchErrorType::Network
+    _ => FetchErrorType::Unknown
+  }
+}
+
+///|
 /// Called from JS when fetch fails
-pub fn on_fetch_error(callback_id : Int, error_message : String) -> Unit {
+pub fn on_fetch_error(
+  callback_id : Int,
+  error_type : String,
+  error_message : String,
+) -> Unit {
+  let typed = parse_error_type(error_type)
   match callback_registry.callbacks.get(callback_id) {
     Some((_, error_cb)) => {
-      (error_cb.on_error)(error_message)
+      (error_cb.on_error)(typed, error_message)
       callback_registry.callbacks.remove(callback_id)
     }
     None =>
@@ -88,12 +111,12 @@ pub fn fetch_async(
   url : String,
   options : RequestOptions,
   on_success : (Response) -> Unit,
-  on_error : (String) -> Unit,
+  on_error : (FetchErrorType, String) -> Unit,
 ) -> Int {
   let callback_id = register_callbacks({ on_success, }, { on_error, })
   if callback_id < 0 {
     on_fetch_success(callback_id, "")
-    on_fetch_error(callback_id, "")
+    on_fetch_error(callback_id, "unknown", "registration failed")
   }
   // Create the fetch and register JS-side callbacks
   let json_options = options.to_json_string()
@@ -163,8 +186,8 @@ pub fn FetchTask::start(
       self.result = FetchResult::Success(response)
       on_complete(self.result)
     },
-    fn(error) {
-      self.result = FetchResult::Error(error)
+    fn(_error_type, error_message) {
+      self.result = FetchResult::Error(error_message)
       on_complete(self.result)
     },
   )

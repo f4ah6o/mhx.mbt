@@ -33,7 +33,7 @@ Add to your `moon.mod.json`:
 ## Contracts and boundaries
 
 - [Attribute contract](./docs/attribute-contract.md) - normative semantics for supported `mx-*` attributes
-- [Trigger spec](./docs/trigger-spec.md)
+- [Trigger spec](./docs/trigger-spec.md) - independent `mx-trigger` DSL grammar, parser output, and parse error behavior
 - [Request lifecycle](./docs/request-lifecycle.md)
 - [Swap contract](./docs/swap-contract.md)
 - [Security boundary](./docs/security.md)
@@ -109,7 +109,7 @@ event[filter] modifier:value, event2[filter2]
 - `target:selector` - Specify action target
 - `consume` - Stop event propagation
 - `prevent` - Prevent default behavior
-- `queue:mode` - Request queue mode (`drop`, `replace`, `first`, `last`, `all`). Example: `queue all`.
+- `queue:mode` - Request queue mode (`drop`, `replace`, `first`, `last`, `all`). Example: `queue:last`.
 
 **Filters:**
 - `[ctrlKey]` - Require Ctrl key
@@ -317,7 +317,6 @@ moon -C mhx.mbt build --target js
 3. Use the npm wrapper entry:
 
 - `npm/index.js` initializes the FFI via `initMhxFfi` and re-exports the public API.
-
 
 
 

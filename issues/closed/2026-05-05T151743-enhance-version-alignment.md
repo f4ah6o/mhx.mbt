@@ -1,6 +1,7 @@
 # Align runtime, MoonBit package, npm package, and docs versions
 
 Created: 2026-05-05
+Completed: 2026-05-11
 Model: N/A
 
 ## Summary
@@ -32,3 +33,10 @@ Define versioning policy for:
 
 - no requirement to use semantic versioning if date-based versioning is intentional
 - no release automation required in this issue
+
+## 解決方法
+
+- `docs/versioning.md` に MoonBit package version と npm/runtime version の 2 domain policy を明文化し、npm release tag は `v<package.json.version>` とした。
+- `docs/versioning.md` に release checklist を追加し、`pnpm verify:versions` と `pnpm build` を release 前の確認として固定した。
+- `npm/check-version-contract.mjs` を拡張し、`moon.mod.json`、`src/lib.mbt`、MoonBit tests、README MoonBit install examples、README npm CDN examples、versioning policy document を検査するようにした。
+- README npm contract が 2 つの version domain を説明し続けることを script で確認するようにした。

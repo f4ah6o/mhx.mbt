@@ -1,6 +1,7 @@
 # Stabilize mx-* attribute contract
 
 Created: 2026-05-05
+Completed: 2026-05-11
 Model: N/A
 
 ## Summary
@@ -48,3 +49,11 @@ Define:
 - no application framework integration
 - no server-side routing convention
 - no template engine coupling
+
+## 解決方法
+
+`docs/attribute-contract.md` を更新し、supported `mx-*` attributes の規範的な意味、既定値、無効な組み合わせ、request attribute の優先順位なしの扱い、target / trigger / sync / `mx-vals` の precedence、parse / validation behavior、future compatibility policy を明文化した。
+
+README の Contracts and boundaries から attribute contract が規範文書であることを分かるようにリンク文言を補足した。
+
+既存実装の parser / validator contract に合わせて、`mx-vals` が form field より後ろに merge されることと、`mx-target` の不完全な extended selector が `MHX_PARSE_INVALID_SELECTOR` として拒否されることをテストで確認した。

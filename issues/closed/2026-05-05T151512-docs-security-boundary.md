@@ -1,6 +1,7 @@
 # Document security boundary for HTML swapping
 
 Created: 2026-05-05
+Completed: 2026-05-11
 Model: N/A
 
 ## Summary
@@ -35,3 +36,10 @@ Document whether mhx:
 
 - no full HTML sanitizer implementation required by this issue
 - no CSP framework required
+
+## 解決方法
+
+- `docs/security.md` を runtime responsibilities、application responsibilities、trust model、script handling、cross-origin guidance、related contracts に分けて整理した。
+- HTML sanitizer、CSP、cross-origin trust policy は `mhx` の責務ではなく application 側の責務であることを明記した。
+- script handling は `innerHTML` / `outerHTML` / `insertAdjacentHTML` の browser native behavior に従い、`mhx` は script blocker や sanitizer として扱えないことを明文化した。
+- `mx-vals` の unsafe shape として array value と top-level array が `MHX_CONFIG_ERROR` になるテストを追加した。

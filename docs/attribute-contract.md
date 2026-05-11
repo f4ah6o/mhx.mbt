@@ -164,7 +164,8 @@ These are configuration-level checks that run before request execution. They car
 
 ### Error structure
 
-Every `MhxError` exposes:
+Every `MhxError` exposes the public structured shape documented in
+[error model](./error-model.md). The MoonBit API includes:
 
 - `category()` – the variant name (`"ParseError"`, `"ConfigError"`, etc.)
 - `code()` – the stable code string from the table above
@@ -172,7 +173,7 @@ Every `MhxError` exposes:
 - `attribute()` – the `mx-*` attribute that caused the error, if applicable
 - `position()` – parser position, only for `ParseError` and config errors that originate from parsing
 - `source_element()` – a description of the DOM element that triggered the error
-- `recoverable()` / `recovery_strategy()` – whether the runtime can continue processing other elements
+- `is_recoverable()` / `recovery_strategy()` – whether the runtime can continue processing other elements
 
 ## Future compatibility policy
 

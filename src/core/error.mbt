@@ -179,14 +179,30 @@ pub fn MhxError::source_element(self : MhxError) -> String? {
 }
 
 ///|
+fn nullable_string_to_json(value : String?) -> Json {
+  match value {
+    Some(value) => value.to_json()
+    None => null
+  }
+}
+
+///|
+fn nullable_position_to_json(value : @parser.Position?) -> Json {
+  match value {
+    Some(value) => value.to_json()
+    None => null
+  }
+}
+
+///|
 pub impl ToJson for MhxError with to_json(self) {
   {
     "category": self.category().to_json(),
     "code": self.code().to_json(),
     "message": self.message().to_json(),
-    "attribute": self.attribute().to_json(),
-    "sourceElement": self.source_element().to_json(),
-    "position": self.position().to_json(),
+    "attribute": nullable_string_to_json(self.attribute()),
+    "sourceElement": nullable_string_to_json(self.source_element()),
+    "position": nullable_position_to_json(self.position()),
     "recoverable": self.is_recoverable().to_json(),
   }
 }
@@ -254,6 +270,14 @@ pub fn timeout_error(url : String, timeout_ms : Int) -> MhxError {
 /// Helper to create abort errors
 pub fn abort_error(url : String) -> MhxError {
   MhxError::AbortError(url~, source_element=None)
+}
+
+///|
+pub fn abort_error_for_element(
+  url : String,
+  source_element : String,
+) -> MhxError {
+  MhxError::AbortError(url~, source_element=Some(source_element))
 }
 
 ///|

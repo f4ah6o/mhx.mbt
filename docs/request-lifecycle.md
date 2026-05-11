@@ -134,4 +134,6 @@ Swap event `detail` has these stable keys:
 - `sourceElement`
 
 `status` is `null` when no HTTP status is available.
-`error` is `null` for successful request events and an object with stable `category` and `message` keys for request failure events.
+`error` is `null` for successful request events and the full structured
+`MhxError` JSON object for request failure events. See
+[error model](./error-model.md) for the stable error fields.

@@ -67,7 +67,7 @@ pub fn Element::child_count(Self) -> Int
 pub fn Element::closest_exists(Self, String) -> Bool
 pub fn Element::closest_ffi(Self, String) -> Self
 pub fn Element::dispatch_mhx_event(Self, String, String) -> String
-pub fn Element::dispatch_request_event(Self, String, String, String, String, String, String, String, String) -> String
+pub fn Element::dispatch_request_event(Self, String, String, String, String, String, String, String) -> String
 pub fn Element::dispatch_swap_event(Self, String, String, String, String, String) -> String
 pub fn Element::focus(Self) -> Unit
 pub fn Element::get_attribute(Self, String) -> String

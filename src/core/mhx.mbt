@@ -743,7 +743,6 @@ fn Mhx::execute_request(
       describe_element(element),
       "",
       "",
-      "",
     ),
   )
   let callback_id = @network.fetch_async(
@@ -755,7 +754,8 @@ fn Mhx::execute_request(
     fn(error_type, error_message) {
       element.remove_class("mx-request")
       let error = match error_type {
-        @network.FetchErrorType::Abort => abort_error(task.url)
+        @network.FetchErrorType::Abort =>
+          abort_error_for_element(task.url, describe_element(element))
         @network.FetchErrorType::Network | @network.FetchErrorType::Unknown =>
           network_error_for_element(
             task.url,
@@ -771,8 +771,7 @@ fn Mhx::execute_request(
           trigger.to_string(),
           describe_element(element),
           "",
-          error.category(),
-          error.message(),
+          error.to_json().stringify(),
         ),
       )
       report_element_error(element, error)
@@ -802,7 +801,6 @@ fn Mhx::handle_response(
         trigger.to_string(),
         describe_element(element),
         response.status().to_string(),
-        "",
         "",
       ),
     )
@@ -855,8 +853,7 @@ fn Mhx::handle_response(
         trigger.to_string(),
         describe_element(element),
         response.status().to_string(),
-        error.category(),
-        error.message(),
+        error.to_json().stringify(),
       ),
     )
     report_element_error(element, error)

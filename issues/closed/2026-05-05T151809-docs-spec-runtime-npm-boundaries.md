@@ -1,6 +1,7 @@
 # Clarify mhx-spec / runtime / npm responsibility boundaries
 
 Created: 2026-05-05
+Completed: 2026-05-11
 Model: N/A
 
 ## Summary
@@ -63,3 +64,11 @@ Responsible for:
 - no large rewrite required in one step
 - no application framework integration
 - no papyr-specific behavior
+
+## 解決方法
+
+- `docs/architecture.md` に `mhx-spec`、`mhx` runtime、npm/browser distribution の owns / does not own を明確化した。
+- parser tests が browser-like globals なしで動く境界として `src/event/trigger_golden_test.mbt` を明記した。
+- runtime は parsed AST fixtures を消費できるが、parser を DOM / fetch / timer / FFI に依存させない dependency direction を明文化した。
+- npm package は root export の runtime surface だけを stable API とし、parser internals を npm subpath として公開しない方針を verification map に追加した。
+- `npm/check-version-contract.mjs` に README architecture link と architecture boundary required sections の検査を追加した。

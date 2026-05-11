@@ -69,6 +69,37 @@ for (const required of [
   );
 }
 
+const readme = readFileSync(join(root, "README.md"), "utf8");
+assert.match(
+  readme,
+  /\[Architecture boundaries\]\(\.\/docs\/architecture\.md\)/,
+  "README.md must link to docs/architecture.md",
+);
+
+const readmeMbt = readFileSync(join(root, "README.mbt.md"), "utf8");
+assert.match(
+  readmeMbt,
+  /\[Architecture boundaries\]\(\.\/docs\/architecture\.md\)/,
+  "README.mbt.md must link to docs/architecture.md",
+);
+
+const architectureDoc = readFileSync(join(root, "docs/architecture.md"), "utf8");
+for (const required of [
+  "## 1. `mhx-spec`",
+  "## 2. `mhx` runtime",
+  "## 3. npm/browser distribution",
+  "## Dependency direction",
+  "## Verification map",
+  "src/event/trigger_golden_test.mbt",
+  "npm/smoke/package-contract.test.mjs",
+  "npm/verify-package.mjs",
+]) {
+  assert.ok(
+    architectureDoc.includes(required),
+    `docs/architecture.md must include ${required}`,
+  );
+}
+
 console.log(
   `Version contract OK: MoonBit ${moonVersion}, npm runtime ${npmVersion}`,
 );

@@ -6,6 +6,17 @@ test "merge_request_bodies combines form and mx-vals" {
 }
 
 ///|
+test "merge_request_bodies appends mx-vals after duplicate form keys" {
+  let merged = merge_request_bodies(
+    "name=form&count=1", "{\"name\":\"vals\",\"enabled\":false,\"missing\":null}",
+  )
+  inspect(
+    merged,
+    content="name=form&count=1&name=vals&enabled=false&missing=null",
+  )
+}
+
+///|
 test "merge_request_bodies rejects nested mx-vals values" {
   let codes : Array[String] = []
   set_error_handler(fn(error : MhxError) { codes.push(error.code()) })

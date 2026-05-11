@@ -1,51 +1,93 @@
 # mhx attribute contract
 
-This document defines the supported `mx-*` attribute surface for `mhx`.
-`mhx` is a low-level browser runtime. Anything not listed here is outside the v1 runtime contract.
+This document defines the stable `mx-*` attribute surface for `mhx`.
+`mhx` is a low-level browser runtime. Anything not listed here is outside the
+stable runtime contract and must not be relied on by applications.
+
+Normative keywords such as "must", "must not", and "may" describe the public
+contract. Error message text is not stable unless this document names a stable
+error code.
 
 ## Supported attributes
 
-| Attribute | Meaning | Default |
+| Attribute | Normative semantics | Default |
 | --- | --- | --- |
-| `mx-get` | issue a GET request | none |
-| `mx-post` | issue a POST request | none |
-| `mx-put` | issue a PUT request | none |
-| `mx-patch` | issue a PATCH request | none |
-| `mx-delete` | issue a DELETE request | none |
-| `mx-trigger` | trigger DSL for request execution | tag-based default |
-| `mx-target` | swap target selector | triggering element |
-| `mx-swap` | DOM swap strategy/options | `innerHTML` |
-| `mx-sync` | request coordination strategy | `drop` |
-| `mx-vals` | extra flat JSON scalar values | none |
+| `mx-get` | Declares a GET request URL. The element becomes request-capable only when exactly one request attribute is present. | none |
+| `mx-post` | Declares a POST request URL. Non-GET methods may include form data and `mx-vals` in the request body. | none |
+| `mx-put` | Declares a PUT request URL. Non-GET methods may include form data and `mx-vals` in the request body. | none |
+| `mx-patch` | Declares a PATCH request URL. Non-GET methods may include form data and `mx-vals` in the request body. | none |
+| `mx-delete` | Declares a DELETE request URL. It uses the same method-selection and URL validation rules as the other request attributes. | none |
+| `mx-trigger` | Declares the trigger DSL that schedules request execution. See [trigger spec](./trigger-spec.md). | tag-based default |
+| `mx-target` | Declares the default swap target selector. A trigger-local `target:` modifier may override it. | triggering element |
+| `mx-swap` | Declares the DOM swap strategy and options. See [swap contract](./swap-contract.md). | `innerHTML` |
+| `mx-sync` | Declares element-local request coordination. See [request lifecycle](./request-lifecycle.md). | `drop` |
+| `mx-vals` | Declares extra flat JSON scalar values that are merged into request data. | empty set |
 
 ## Defaults
 
-- request attributes are inert unless exactly one of `mx-get`, `mx-post`, `mx-put`, `mx-patch`, or `mx-delete` is present
-- `mx-trigger` defaults to:
-  - `submit` for `FORM`
-  - `change` for `INPUT`, `TEXTAREA`, `SELECT`
-  - `click` otherwise
-- `mx-target` defaults to the triggering element (`this`)
-- `mx-swap` defaults to `innerHTML`
-- `mx-sync` defaults to `drop`
-- `mx-vals` defaults to an empty set of extra values
+- An element is request-capable only when exactly one of `mx-get`, `mx-post`,
+  `mx-put`, `mx-patch`, or `mx-delete` is present. Elements that only carry
+  non-request attributes such as `mx-trigger` or `mx-target` are inert for
+  network execution.
+- `mx-trigger` defaults to `submit` for `FORM`, `change` for `INPUT`,
+  `TEXTAREA`, and `SELECT`, and `click` for every other tag.
+- `mx-target` defaults to the triggering element, equivalent to `this`.
+- `mx-swap` defaults to `innerHTML`.
+- `mx-sync` defaults to `drop`.
+- `mx-vals` defaults to an empty set of extra values.
+
+## Request attribute precedence
+
+`mx-get`, `mx-post`, `mx-put`, `mx-patch`, and `mx-delete` are mutually
+exclusive. There is no implicit precedence order among request attributes. If
+more than one request attribute appears on the same element, `mhx` must reject
+the element before request execution with
+`MHX_VALIDATE_CONFLICTING_REQUEST_METHODS`.
+
+The selected request attribute value is the request URL. The URL must not be
+empty after trimming ASCII whitespace. An empty request URL must be rejected
+with `MHX_VALIDATE_EMPTY_REQUEST_URL`.
+
+## Target and swap precedence
+
+Target selection is evaluated in this order:
+
+1. A trigger-local `target:` modifier in `mx-trigger`.
+2. The element-level `mx-target` selector.
+3. The triggering element itself.
+
+`mx-target` and trigger-local target selectors may use the selector forms
+defined by the trigger and swap contracts. The bare extended selector keywords
+`closest`, `find`, `next`, and `previous` are incomplete by themselves and must
+be rejected with `MHX_PARSE_INVALID_SELECTOR` when used as an element-level
+`mx-target`.
+
+`mx-swap` decides how a successful response mutates the resolved target. It
+does not select the target and does not affect request scheduling.
+
+## Trigger and sync precedence
+
+`mx-trigger` controls when a request is scheduled. `mx-sync` controls how
+concurrent requests for the same element are coordinated.
+
+A trigger-local queue modifier and `mx-sync="queue ..."` express the same
+coordination policy at different levels. Combining them on the same element is
+invalid and must be rejected with `MHX_VALIDATE_TRIGGER_SYNC_CONFLICT`.
+
+Other trigger modifiers such as `delay`, `throttle`, `debounce`, `once`,
+`changed`, `consume`, and `prevent` remain trigger-local and do not override
+`mx-sync`.
 
 ## Invalid combinations
 
-`mhx` treats the following as configuration errors and refuses to process the element:
+`mhx` treats the following as configuration errors and refuses to process the
+element:
 
-- more than one request attribute on the same element
-- an empty request URL
-- `mx-target` selectors using incomplete extended forms such as `closest`, `find`, `next`, or `previous` without a trailing selector
-- a trigger-local queue modifier together with `mx-sync="queue ..."`
-
-## Precedence rules
-
-- request method precedence is **not** implicit; multiple request attributes are invalid
-- a trigger-local `target:` modifier overrides `mx-target`
-- otherwise `mx-target` overrides the default `this`
-- `mx-trigger` controls *when* a request is scheduled; `mx-sync` controls *how* concurrent requests are coordinated
-- `mx-vals` augments form data; later `mx-vals` keys override same-named form fields in the encoded request body
+- More than one request attribute on the same element.
+- A request attribute whose URL is empty after trimming whitespace.
+- `mx-target` selectors using incomplete extended forms such as `closest`,
+  `find`, `next`, or `previous` without a trailing selector.
+- A trigger-local queue modifier together with `mx-sync="queue ..."`.
 
 ## `mx-vals`
 
@@ -56,13 +98,29 @@ This document defines the supported `mx-*` attribute surface for `mhx`.
 - booleans
 - `null`
 
-Nested objects and arrays are rejected with `MHX_CONFIG_ERROR`. `mhx` does not evaluate JavaScript inside `mx-vals`.
+Nested objects and arrays are rejected with `MHX_CONFIG_ERROR`. Non-object
+input, malformed key/value pairs, and invalid JSON object keys are also
+configuration errors. `mhx` does not evaluate JavaScript inside `mx-vals`.
+
+When request data is encoded, form fields are collected first and `mx-vals`
+pairs are appended after them. Consumers that collapse duplicate keys into a map
+must treat the later `mx-vals` value as the effective value. This gives
+`mx-vals` precedence over same-named form fields without changing the raw
+form-encoded order.
 
 ## Parse and validation behavior
 
-- trigger syntax errors surface as stable `MHX_PARSE_*` codes with parser positions
-- runtime contract validation surfaces stable `MHX_VALIDATE_*` codes for conflicting methods, empty URLs, and queue/sync overlap
-- missing swap targets are runtime selector errors, not parse errors; see [swap contract](./swap-contract.md)
+- `mx-trigger` syntax errors surface as stable `MHX_PARSE_*` codes with parser
+  positions.
+- Runtime contract validation surfaces stable `MHX_VALIDATE_*` codes for
+  conflicting methods, empty URLs, and queue/sync overlap.
+- Element-level `mx-target` validation uses `MHX_PARSE_INVALID_SELECTOR` for
+  incomplete extended selector syntax.
+- `mx-swap` and `mx-sync` parsing must fall back to documented defaults for
+  unknown strategy strings unless their own contract later defines stricter
+  validation.
+- Missing swap targets are runtime selector errors, not parse errors; see
+  [swap contract](./swap-contract.md).
 
 ## Error code catalog
 

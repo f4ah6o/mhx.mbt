@@ -34,7 +34,7 @@ Add to your `moon.mod.json`:
 
 - [Attribute contract](./docs/attribute-contract.md) - normative semantics for supported `mx-*` attributes
 - [Trigger spec](./docs/trigger-spec.md) - independent `mx-trigger` DSL grammar, parser output, and parse error behavior
-- [Request lifecycle](./docs/request-lifecycle.md)
+- [Request lifecycle](./docs/request-lifecycle.md) - deterministic request states, queue modes, abort cleanup, and lifecycle event details
 - [Swap contract](./docs/swap-contract.md)
 - [Security boundary](./docs/security.md)
 - [FFI boundary](./docs/ffi-boundary.md)
@@ -317,6 +317,5 @@ moon -C mhx.mbt build --target js
 3. Use the npm wrapper entry:
 
 - `npm/index.js` initializes the FFI via `initMhxFfi` and re-exports the public API.
-
 
 

@@ -175,6 +175,9 @@ pub fn RequestManager::schedule(
         None => ()
       }
       // Also clear any pending
+      for pending in queue.pending {
+        pending.cancel()
+      }
       queue.pending.clear()
       queue.current = Some(task)
       ScheduleResult::Execute(task)
@@ -193,6 +196,9 @@ pub fn RequestManager::schedule(
             }
           @sync.QueueMode::Last => {
             // Replace any pending with just this one
+            for pending in queue.pending {
+              pending.cancel()
+            }
             queue.pending.clear()
             queue.pending.push(task)
             ScheduleResult::Queued
@@ -216,20 +222,27 @@ pub fn RequestManager::schedule(
 pub fn RequestManager::complete(
   self : RequestManager,
   element_id : Int,
-  _task_id : Int,
+  task_id : Int,
 ) -> RequestTask? {
   match self.queues.get(element_id) {
-    Some(queue) => {
-      queue.current = Option::None
-      // Get next pending task
-      if queue.pending.is_empty() {
-        Option::None
-      } else {
-        let next = queue.pending.remove(0)
-        queue.current = Some(next)
-        Some(next)
+    Some(queue) =>
+      match queue.current {
+        Some(current) =>
+          if current.id == task_id {
+            queue.current = Option::None
+            // Get next pending task
+            if queue.pending.is_empty() {
+              Option::None
+            } else {
+              let next = queue.pending.remove(0)
+              queue.current = Some(next)
+              Some(next)
+            }
+          } else {
+            Option::None
+          }
+        None => Option::None
       }
-    }
     None => Option::None
   }
 }

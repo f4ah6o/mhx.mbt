@@ -1,6 +1,7 @@
 # Define swap engine behavior as low-level DOM primitives
 
 Created: 2026-05-05
+Completed: 2026-05-11
 Model: N/A
 
 ## Summary
@@ -28,7 +29,7 @@ Also define:
 
 - target resolution
 - missing target behavior
-- script handling policy
+- script handling policy, if supported
 - focus preservation policy, if supported
 - lifecycle hooks around swap
 
@@ -54,3 +55,13 @@ Suggested lifecycle hooks:
 - no virtual DOM abstraction
 - no template engine coupling
 - no framework-specific lifecycle
+
+## Resolution
+
+Documented the swap engine as browser DOM primitives in `docs/swap-contract.md`,
+including exact behavior for all eight strategies, missing target errors,
+`mx-swap="none"`, lifecycle event detail, script handling, and focus policy.
+
+Added focused npm smoke fixtures for the low-level DOM operations and swap
+lifecycle dispatch shape used by the runtime. No framework-specific assumptions
+or new test framework were added.

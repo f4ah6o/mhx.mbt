@@ -40,6 +40,34 @@ Internal callback hooks are intentionally **not** exported.
 </script>
 ```
 
+### CDN / integrity guidance
+
+Use exact package versions for CDN URLs:
+
+```text
+https://unpkg.com/mhx@2026.1.22/dist/mhx.esm.js
+https://unpkg.com/mhx@2026.1.22/dist/mhx.umd.js
+https://cdn.jsdelivr.net/npm/mhx@2026.1.22/dist/mhx.esm.js
+https://cdn.jsdelivr.net/npm/mhx@2026.1.22/dist/mhx.umd.js
+```
+
+If you need Subresource Integrity, compute the hash from the exact file you
+serve and pin the same version in the URL:
+
+```bash
+curl -sL https://unpkg.com/mhx@2026.1.22/dist/mhx.umd.js | openssl dgst -sha384 -binary | openssl base64 -A
+```
+
+Use the result as `sha384-<hash>`:
+
+```html
+<script
+  src="https://unpkg.com/mhx@2026.1.22/dist/mhx.umd.js"
+  integrity="sha384-<hash>"
+  crossorigin="anonymous"
+></script>
+```
+
 ## Published files
 
 The published package is limited to:

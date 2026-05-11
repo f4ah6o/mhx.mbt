@@ -218,3 +218,9 @@ test("package exports do not publish ffi internals as subpaths", () => {
     "dist/mhx.umd.js",
   ]);
 });
+
+test("package metadata documents runtime side effects and no types", () => {
+  assert.equal(packageJson.sideEffects, true);
+  assert.ok(!("types" in packageJson), "types must stay absent until declarations are published");
+  assert.ok(!("typings" in packageJson), "typings must stay absent until declarations are published");
+});

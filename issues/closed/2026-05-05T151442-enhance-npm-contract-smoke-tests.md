@@ -1,6 +1,7 @@
 # Improve npm package consumer contract and smoke tests
 
 Created: 2026-05-05
+Completed: 2026-05-11
 Model: N/A
 
 ## Summary
@@ -37,3 +38,9 @@ Add or clarify:
 
 - no framework-specific adapters
 - no bundler-specific plugin requirement
+
+## 解決方法
+
+- `README.npm.md` に ESM / UMD contract、published files、TypeScript declaration 未提供、`sideEffects: true`、browser compatibility、CDN/SRI guidance、vanilla HTML example、version domain policy を明文化した。
+- `npm/smoke/package-contract.test.mjs` で ESM / UMD の public surface、package subpath exports、published `files` field、`sideEffects`、`types` / `typings` absence を固定した。
+- 既存の `npm/verify-package.mjs` が `npm pack --dry-run --json` で tarball file list を確認し、`pnpm build` 経由で CI から実行される package verification と smoke test の経路を維持した。

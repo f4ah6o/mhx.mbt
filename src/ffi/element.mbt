@@ -172,7 +172,7 @@ pub fn Element::dispatch_mhx_event(
 ///|
 /// Dispatch a request lifecycle event by building the detail object directly in JS.
 /// Avoids the JSON.stringify round-trip for high-frequency request events.
-/// Pass empty strings for status/error args when not applicable.
+/// Pass empty strings for status/error JSON when not applicable.
 pub fn Element::dispatch_request_event(
   self : Element,
   phase : String,
@@ -181,8 +181,7 @@ pub fn Element::dispatch_request_event(
   trigger : String,
   source_element : String,
   status : String,
-  error_category : String,
-  error_message : String,
+  error_json : String,
 ) -> String = "mhx_ffi" "element_dispatch_request_event"
 
 ///|

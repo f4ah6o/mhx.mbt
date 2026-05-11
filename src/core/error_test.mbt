@@ -20,9 +20,9 @@ test "config issues preserve stable structured fields" {
     "category": "ConfigError",
     "code": "MHX_VALIDATE_EMPTY_REQUEST_URL",
     "message": "Request URL must not be empty",
-    "attribute": ["mx-get"],
-    "sourceElement": ["#save"],
-    "position": [{ "offset": 0, "char": "\u0000" }],
+    "attribute": "mx-get",
+    "sourceElement": "#save",
+    "position": { "offset": 0, "char": "\u0000" },
     "recoverable": true,
   })
 }
@@ -61,4 +61,73 @@ test "selector errors report a stable source element" {
     Some(el) => inspect(el, content="#source")
     None => fail("expected source_element to be Some")
   }
+}
+
+///|
+test "runtime error categories expose stable json shapes" {
+  json_inspect(network_error_for_element("/save", "Failed to fetch", "#save"), content={
+    "category": "NetworkError",
+    "code": "MHX_NETWORK_ERROR",
+    "message": "Failed to fetch",
+    "attribute": null,
+    "sourceElement": "#save",
+    "position": null,
+    "recoverable": true,
+  })
+  json_inspect(abort_error_for_element("/save", "#save"), content={
+    "category": "AbortError",
+    "code": "MHX_ABORT_ERROR",
+    "message": "Request to `/save` was aborted",
+    "attribute": null,
+    "sourceElement": "#save",
+    "position": null,
+    "recoverable": true,
+  })
+  json_inspect(timeout_error("/slow", 1500), content={
+    "category": "TimeoutError",
+    "code": "MHX_TIMEOUT_ERROR",
+    "message": "Request to `/slow` exceeded 1500ms",
+    "attribute": null,
+    "sourceElement": null,
+    "position": null,
+    "recoverable": true,
+  })
+  json_inspect(swap_error("#result", "outerHTML", "insert failed"), content={
+    "category": "SwapError",
+    "code": "MHX_SWAP_ERROR",
+    "message": "Swap `outerHTML` failed: insert failed",
+    "attribute": null,
+    "sourceElement": null,
+    "position": null,
+    "recoverable": true,
+  })
+  json_inspect(ffi_error("element.dispatch_mhx_event", "boom"), content={
+    "category": "FfiError",
+    "code": "MHX_FFI_ERROR",
+    "message": "FFI operation `element.dispatch_mhx_event` failed: boom",
+    "attribute": null,
+    "sourceElement": null,
+    "position": null,
+    "recoverable": true,
+  })
+  json_inspect(internal_error("MHX_INTERNAL_ERROR", "invariant failed"), content={
+    "category": "InternalError",
+    "code": "MHX_INTERNAL_ERROR",
+    "message": "invariant failed",
+    "attribute": null,
+    "sourceElement": null,
+    "position": null,
+    "recoverable": false,
+  })
+}
+
+///|
+test "error handler receives structured errors" {
+  let seen : Array[String] = []
+  set_error_handler(fn(error : MhxError) {
+    seen.push(error.category() + ":" + error.code())
+  })
+  report_error(network_error_for_element("/save", "Failed to fetch", "#save"))
+  set_error_handler(default_error_handler)
+  inspect(seen.join(","), content="NetworkError:MHX_NETWORK_ERROR")
 }

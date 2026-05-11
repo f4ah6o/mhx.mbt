@@ -352,9 +352,9 @@ export function element_dispatch_mhx_event(elem, eventName, detailJson) {
 /**
  * Dispatch a mhx:request event by building the detail object directly.
  * Avoids the JSON.stringify -> JSON.parse round-trip for high-frequency request lifecycle events.
- * Empty strings for status/errorCategory/errorMessage mean null/absent.
+ * Empty strings for status/errorJson mean null/absent.
  */
-export function element_dispatch_request_event(elem, phase, url, httpMethod, trigger, sourceElement, status, errorCategory, errorMessage) {
+export function element_dispatch_request_event(elem, phase, url, httpMethod, trigger, sourceElement, status, errorJson) {
   try {
     const detail = {
       phase,
@@ -363,7 +363,7 @@ export function element_dispatch_request_event(elem, phase, url, httpMethod, tri
       trigger,
       sourceElement,
       status: status !== "" ? Number(status) : null,
-      error: errorCategory !== "" ? { category: errorCategory, message: errorMessage } : null,
+      error: errorJson !== "" ? JSON.parse(errorJson) : null,
     };
     const eventName = phase === "in_flight" ? "mhx:beforeRequest" : "mhx:afterRequest";
     elem.dispatchEvent(

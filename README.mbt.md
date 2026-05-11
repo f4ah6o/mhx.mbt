@@ -36,6 +36,7 @@ Add to your `moon.mod.json`:
 - [Trigger spec](./docs/trigger-spec.md) - independent `mx-trigger` DSL grammar, parser output, and parse error behavior
 - [Request lifecycle](./docs/request-lifecycle.md) - deterministic request states, queue modes, abort cleanup, and lifecycle event details
 - [Swap contract](./docs/swap-contract.md)
+- [Error model](./docs/error-model.md) - structured `MhxError` fields, JSON shape, stable codes, and handler/event payloads
 - [Security boundary](./docs/security.md)
 - [FFI boundary](./docs/ffi-boundary.md)
 - [Architecture boundaries](./docs/architecture.md)
@@ -193,7 +194,7 @@ let element = document.query_selector("#new-content")
 // Set custom error handler
 @core.set_error_handler(fn(error : MhxError) {
   match error {
-     _ => console.error(error.code() + ": " + error.message())
+     _ => console.error(error.to_json().stringify())
   }
 })
 ```
@@ -317,5 +318,4 @@ moon -C mhx.mbt build --target js
 3. Use the npm wrapper entry:
 
 - `npm/index.js` initializes the FFI via `initMhxFfi` and re-exports the public API.
-
 

@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import {
   element_dispatch_mhx_event,
+  element_dispatch_request_event,
   element_dispatch_swap_event,
   element_insert_adjacent_html,
   element_remove,
@@ -170,4 +171,33 @@ test("missing target errors use structured mhx:error detail", () => {
       },
     ],
   );
+});
+
+test("request failure event carries full structured error detail", () => {
+  const source = new FixtureElement();
+  const error = {
+    category: "NetworkError",
+    code: "MHX_NETWORK_ERROR",
+    message: "Failed to fetch",
+    attribute: null,
+    sourceElement: "#save",
+    position: null,
+    recoverable: true,
+  };
+
+  assert.equal(
+    element_dispatch_request_event(
+      source,
+      "afterRequest",
+      "/save",
+      "GET",
+      "click",
+      "#save",
+      "",
+      JSON.stringify(error),
+    ),
+    "",
+  );
+
+  assert.deepEqual(source.events[0].detail.error, error);
 });

@@ -11,6 +11,8 @@ import {
 // Values
 pub fn abort_error(String) -> MhxError
 
+pub fn abort_error_for_element(String, String) -> MhxError
+
 pub fn config_error(String, String) -> MhxError
 
 pub fn config_issue_error(String, String, String, @parser.Position?, String?) -> MhxError

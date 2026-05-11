@@ -201,3 +201,40 @@ test("request failure event carries full structured error detail", () => {
 
   assert.deepEqual(source.events[0].detail.error, error);
 });
+
+test("ffi dispatch failures return messages for MhxError conversion", () => {
+  const source = new FixtureElement();
+  source.dispatchEvent = () => {
+    throw new Error("CustomEvent dispatch failed");
+  };
+
+  assert.equal(
+    element_dispatch_mhx_event(source, "mhx:error", "{}"),
+    "CustomEvent dispatch failed",
+  );
+  assert.equal(
+    element_dispatch_request_event(
+      source,
+      "afterRequest",
+      "/save",
+      "GET",
+      "click",
+      "#save",
+      "",
+      "",
+    ),
+    "CustomEvent dispatch failed",
+  );
+  assert.equal(
+    element_dispatch_swap_event(
+      source,
+      "completed",
+      "click",
+      "innerHTML",
+      "#save",
+      "#target",
+    ),
+    "CustomEvent dispatch failed",
+  );
+  assert.deepEqual(source.events, []);
+});

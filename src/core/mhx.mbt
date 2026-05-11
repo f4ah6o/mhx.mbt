@@ -390,6 +390,42 @@ fn emit_lifecycle_event(
 }
 
 ///|
+fn emit_request_event(
+  element : @ffi.Element,
+  phase : String,
+  url : String,
+  http_method : String,
+  trigger : String,
+  source_element : String,
+  status : String,
+  error_json : String,
+) -> Unit {
+  let error_message = element.dispatch_request_event(
+    phase, url, http_method, trigger, source_element, status, error_json,
+  )
+  if !error_message.is_empty() {
+    report_error(ffi_error("element.dispatch_request_event", error_message))
+  }
+}
+
+///|
+fn emit_swap_event(
+  element : @ffi.Element,
+  phase : String,
+  trigger : String,
+  strategy : String,
+  source_element : String,
+  target : String,
+) -> Unit {
+  let error_message = element.dispatch_swap_event(
+    phase, trigger, strategy, source_element, target,
+  )
+  if !error_message.is_empty() {
+    report_error(ffi_error("element.dispatch_swap_event", error_message))
+  }
+}
+
+///|
 fn report_element_error(element : @ffi.Element, error : MhxError) -> Unit {
   report_error(error)
   emit_lifecycle_event(element, "mhx:error", {
@@ -734,16 +770,15 @@ fn Mhx::execute_request(
   config : @event.ElementConfig,
   trigger : @trigger.TriggerDef,
 ) -> Unit {
-  ignore(
-    element.dispatch_request_event(
-      "in_flight",
-      task.url,
-      task.options.http_method,
-      trigger.to_string(),
-      describe_element(element),
-      "",
-      "",
-    ),
+  emit_request_event(
+    element,
+    "in_flight",
+    task.url,
+    task.options.http_method,
+    trigger.to_string(),
+    describe_element(element),
+    "",
+    "",
   )
   let callback_id = @network.fetch_async(
     task.url,
@@ -763,16 +798,15 @@ fn Mhx::execute_request(
             describe_element(element),
           )
       }
-      ignore(
-        element.dispatch_request_event(
-          "afterRequest",
-          task.url,
-          task.options.http_method,
-          trigger.to_string(),
-          describe_element(element),
-          "",
-          error.to_json().stringify(),
-        ),
+      emit_request_event(
+        element,
+        "afterRequest",
+        task.url,
+        task.options.http_method,
+        trigger.to_string(),
+        describe_element(element),
+        "",
+        error.to_json().stringify(),
       )
       report_element_error(element, error)
       self.finish_request(element, task, config, trigger)
@@ -793,39 +827,36 @@ fn Mhx::handle_response(
 ) -> Unit {
   element.remove_class("mx-request")
   if response.ok() {
-    ignore(
-      element.dispatch_request_event(
-        "afterRequest",
-        task.url,
-        task.options.http_method,
-        trigger.to_string(),
-        describe_element(element),
-        response.status().to_string(),
-        "",
-      ),
+    emit_request_event(
+      element,
+      "afterRequest",
+      task.url,
+      task.options.http_method,
+      trigger.to_string(),
+      describe_element(element),
+      response.status().to_string(),
+      "",
     )
     let swap_options = get_swap_options(element, config)
     match resolve_swap_target_from_trigger(element, trigger, config) {
       Some(swap_target) => {
-        ignore(
-          element.dispatch_swap_event(
-            "swapping",
-            trigger.to_string(),
-            swap_options.to_string(),
-            describe_element(element),
-            describe_element(swap_target),
-          ),
+        emit_swap_event(
+          element,
+          "swapping",
+          trigger.to_string(),
+          swap_options.to_string(),
+          describe_element(element),
+          describe_element(swap_target),
         )
         @swap.perform_swap(swap_target, response.text(), swap_options)
         self.process_tree(swap_target)
-        ignore(
-          element.dispatch_swap_event(
-            "completed",
-            trigger.to_string(),
-            swap_options.to_string(),
-            describe_element(element),
-            describe_element(swap_target),
-          ),
+        emit_swap_event(
+          element,
+          "completed",
+          trigger.to_string(),
+          swap_options.to_string(),
+          describe_element(element),
+          describe_element(swap_target),
         )
       }
       None =>
@@ -845,16 +876,15 @@ fn Mhx::handle_response(
       message,
       describe_element(element),
     )
-    ignore(
-      element.dispatch_request_event(
-        "afterRequest",
-        task.url,
-        task.options.http_method,
-        trigger.to_string(),
-        describe_element(element),
-        response.status().to_string(),
-        error.to_json().stringify(),
-      ),
+    emit_request_event(
+      element,
+      "afterRequest",
+      task.url,
+      task.options.http_method,
+      trigger.to_string(),
+      describe_element(element),
+      response.status().to_string(),
+      error.to_json().stringify(),
     )
     report_element_error(element, error)
   }

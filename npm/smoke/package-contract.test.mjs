@@ -7,6 +7,22 @@ import vm from "node:vm";
 
 const root = process.cwd();
 const packageJson = JSON.parse(readFileSync(join(root, "package.json"), "utf8"));
+const stableNames = ["default", "handle_event", "init_mhx", "process", "version"];
+const internalNames = [
+  "cancel_fetch",
+  "element_dispatch_mhx_event",
+  "element_dispatch_request_event",
+  "element_dispatch_swap_event",
+  "fetchCallbacks",
+  "get_instance",
+  "initMhxFfi",
+  "mhx_register_exports",
+  "mutationCallbacks",
+  "on_fetch_error",
+  "on_fetch_success",
+  "on_mutation_observed",
+  "register_exports",
+];
 
 class FakeElement {
   constructor(tagName = "DIV", id = "") {
@@ -155,16 +171,18 @@ test("esm export contract", async () => {
     `${pathToFileURL(join(root, "dist", "mhx.esm.js")).href}?t=${Date.now()}`
   );
 
+  assert.deepEqual(Object.keys(mod).sort(), stableNames);
   assert.equal(typeof mod.default, "object");
   assert.equal(typeof mod.init_mhx, "function");
   assert.equal(typeof mod.process, "function");
   assert.equal(typeof mod.handle_event, "function");
   assert.equal(mod.version, packageJson.version);
   assert.equal(mod.default.version, packageJson.version);
-  assert.ok(!("on_fetch_success" in mod));
-  assert.ok(!("on_fetch_error" in mod));
-  assert.ok(!("on_mutation_observed" in mod));
-  assert.ok(!("get_instance" in mod));
+  assert.deepEqual(Object.keys(mod.default).sort(), stableNames.filter((name) => name !== "default"));
+  for (const name of internalNames) {
+    assert.ok(!(name in mod), `${name} must not be an ESM export`);
+    assert.ok(!(name in mod.default), `${name} must not be on the default namespace`);
+  }
 });
 
 test("umd global contract", async () => {
@@ -179,8 +197,24 @@ test("umd global contract", async () => {
   assert.equal(typeof context.mhx.process, "function");
   assert.equal(typeof context.mhx.handle_event, "function");
   assert.equal(context.mhx.version, packageJson.version);
-  assert.ok(!("on_fetch_success" in context.mhx));
-  assert.ok(!("on_fetch_error" in context.mhx));
-  assert.ok(!("on_mutation_observed" in context.mhx));
-  assert.ok(!("get_instance" in context.mhx));
+  assert.deepEqual(Object.keys(context.mhx).sort(), stableNames);
+  assert.deepEqual(Object.keys(context.mhx.default).sort(), stableNames.filter((name) => name !== "default"));
+  for (const name of internalNames) {
+    assert.ok(!(name in context.mhx), `${name} must not be on the UMD global`);
+    assert.ok(!(name in context.mhx.default), `${name} must not be on the UMD default namespace`);
+  }
+});
+
+test("package exports do not publish ffi internals as subpaths", () => {
+  assert.deepEqual(Object.keys(packageJson.exports).sort(), ["."]);
+  assert.deepEqual(packageJson.exports["."], {
+    import: "./dist/mhx.esm.js",
+    require: "./dist/mhx.umd.js",
+  });
+  assert.deepEqual(packageJson.files.sort(), [
+    "LICENSE",
+    "README.md",
+    "dist/mhx.esm.js",
+    "dist/mhx.umd.js",
+  ]);
 });

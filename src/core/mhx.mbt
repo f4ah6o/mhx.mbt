@@ -14,13 +14,13 @@ pub struct Mhx {
   /// Timing manager for delay/throttle/debounce
   timing : @event.TimingManager
   /// Last observed input values for changed modifier
-  changed_values : Map[Int, String]
+  changed_values : Map[Int32, String]
   /// Whether mhx has been initialized
   mut initialized : Bool
   /// MutationObserver for auto-processing new elements
   mut observer : @ffi.MutationObserver?
   /// Callback ID for mutation observer
-  mut observer_callback_id : Int
+  mut observer_callback_id : Int32
 }
 
 ///|
@@ -125,16 +125,19 @@ pub fn Mhx::disconnect_observer(self : Mhx) -> Unit {
 ///|
 /// Internal mutation callback registry
 priv struct MutationCallbackRegistry {
-  mut next_id : Int
-  callbacks : Map[Int, () -> Unit]
+  mut next_id : Int32
+  callbacks : Map[Int32, () -> Unit]
 }
 
 ///|
-let mutation_registry : MutationCallbackRegistry = { next_id: 1, callbacks: {} }
+let mutation_registry : MutationCallbackRegistry = {
+  next_id: 1,
+  callbacks: {},
+}
 
 ///|
 /// Register a mutation callback and return its ID
-fn register_mutation_callback() -> Int {
+fn register_mutation_callback() -> Int32 {
   let id = mutation_registry.next_id
   mutation_registry.next_id += 1
   // Store a callback that will process mutations via the global instance
@@ -144,13 +147,13 @@ fn register_mutation_callback() -> Int {
 
 ///|
 /// Unregister a mutation callback
-fn unregister_mutation_callback(id : Int) -> Unit {
+fn unregister_mutation_callback(id : Int32) -> Unit {
   mutation_registry.callbacks.remove(id)
 }
 
 ///|
 /// Called from JS when mutations are observed
-pub fn on_mutation_observed(callback_id : Int) -> Unit {
+pub fn on_mutation_observed(callback_id : Int32) -> Unit {
   match mutation_registry.callbacks.get(callback_id) {
     Some(cb) => cb()
     None => ()
@@ -159,7 +162,7 @@ pub fn on_mutation_observed(callback_id : Int) -> Unit {
 
 ///|
 /// Process pending mutations from the observer
-fn process_pending_mutations(callback_id : Int) -> Unit {
+fn process_pending_mutations(callback_id : Int32) -> Unit {
   let mhx = global_mhx
   match mhx.observer {
     Some(observer) => {
@@ -215,17 +218,20 @@ fn process_mutation_record(mhx : Mhx, record : @ffi.MutationRecord) -> Unit {
 }
 
 ///|
-/// Simple hash function for element identification
-fn hash_element(element : @ffi.Element) -> Int {
-  let id = element.id()
-  let tag = element.tag_name()
-  let combined = tag + "#" + id
-  // Simple string hash
-  let mut hash = 0
-  for c in combined {
-    hash = hash * 31 + c.to_int()
+let next_element_key : Ref[Int32] = { val: 0 }
+
+///|
+/// Stable per-element key. Keying on tag + id made every id-less element of
+/// a tag share one cached config, timing state and `changed` value, so
+/// stamp each element with its own key on first sight instead.
+fn hash_element(element : @ffi.Element) -> Int32 {
+  let existing = element.get_attribute("data-mx-key")
+  if existing != "" {
+    return @string.parse_int(existing) catch { _ => 0 }
   }
-  hash
+  next_element_key.val += 1
+  element.set_attribute("data-mx-key", next_element_key.val.to_string())
+  next_element_key.val
 }
 
 ///|
@@ -453,7 +459,7 @@ fn requested_swap_target_spec(
 fn Mhx::load_config(
   self : Mhx,
   element : @ffi.Element,
-  element_id : Int,
+  element_id : Int32,
 ) -> @event.ElementConfig? {
   match self.cache.get(element_id) {
     Some(config) => Some(config)
@@ -534,15 +540,18 @@ pub fn Mhx::handle_event(
                 let timing_state = self.timing.get_state(
                   element_id, trigger_index,
                 )
+                // Bind the element now: `current` keeps walking up the tree,
+                // so a deferred (debounced) closure would see an ancestor.
+                let element = current
                 // Apply timing modifiers (delay, throttle, debounce)
                 let execute_now = @event.apply_timing_modifiers(
                   timing_state,
                   trigger,
-                  fn() { self.execute_action(current, cfg, trigger, event) },
+                  fn() { self.execute_action(element, cfg, trigger, event) },
                 )
                 if execute_now {
                   // Execute immediately if no timing modifiers
-                  self.execute_action(current, cfg, trigger, event)
+                  self.execute_action(element, cfg, trigger, event)
                 }
                 // Handle once modifier
                 if trigger.is_once() {
@@ -577,7 +586,7 @@ pub fn Mhx::handle_event(
 fn Mhx::is_value_changed(
   self : Mhx,
   element : @ffi.Element,
-  trigger_index : Int,
+  trigger_index : Int32,
 ) -> Bool {
   let element_hash = hash_element(element)
   let element_id = self.cache.get_element_id(element_hash)
@@ -607,8 +616,13 @@ fn Mhx::execute_action(
   trigger : @trigger.TriggerDef,
   event : @ffi.Event,
 ) -> Unit {
-  // Handle prevent modifier (preventDefault)
-  if trigger.should_prevent() {
+  // Handle prevent modifier (preventDefault). As in htmx, clicks on links and
+  // form submits are always prevented so the browser doesn't also navigate.
+  let tag = element.tag_name()
+  let event_type = event.type_()
+  if trigger.should_prevent() ||
+    (tag == "A" && event_type == "click") ||
+    (tag == "FORM" && event_type == "submit") {
     event.prevent_default()
   }
   // Determine the URL and method
@@ -706,7 +720,7 @@ fn build_request_options(
     | @event.HttpMethod::Patch => {
       let body_data = build_request_body(element, config)
       if !body_data.is_empty() {
-        options = { ..options, body: Some(body_data) }
+        options = { ..options, body: Some(body_data), }
         options = options.with_header(
           "Content-Type", "application/x-www-form-urlencoded",
         )

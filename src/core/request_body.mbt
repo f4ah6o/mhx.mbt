@@ -324,7 +324,7 @@ fn parse_hex_byte(hex : String) -> Byte? {
 ///|
 /// Convert Byte to Char (ASCII range)
 fn char_from_byte(b : Byte) -> Char {
-  let code : Int = b.to_int()
+  let code : Int32 = b.to_int()
   match code.to_char() {
     Some(c) => c
     None => '\u0000'
@@ -333,7 +333,7 @@ fn char_from_byte(b : Byte) -> Char {
 
 ///|
 /// Convert a hex digit to int
-fn hex_digit_value(c : Char) -> Int? {
+fn hex_digit_value(c : Char) -> Int32? {
   if c >= '0' && c <= '9' {
     Some(c.to_int() - '0'.to_int())
   } else if c >= 'a' && c <= 'f' {

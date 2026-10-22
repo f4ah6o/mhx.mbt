@@ -9,7 +9,7 @@ pub(all) suberror MhxError {
   /// Network request error.
   NetworkError(url~ : String, message~ : String, source_element~ : String?)
   /// Network timeout error.
-  TimeoutError(url~ : String, timeout_ms~ : Int, source_element~ : String?)
+  TimeoutError(url~ : String, timeout_ms~ : Int32, source_element~ : String?)
   /// Network abort error (request was cancelled).
   AbortError(url~ : String, source_element~ : String?)
   /// DOM operation error.
@@ -195,7 +195,7 @@ fn nullable_position_to_json(value : @parser.Position?) -> Json {
 }
 
 ///|
-pub impl ToJson for MhxError with to_json(self) {
+pub impl ToJson for MhxError with fn to_json(self) {
   {
     "category": self.category().to_json(),
     "code": self.code().to_json(),
@@ -208,7 +208,7 @@ pub impl ToJson for MhxError with to_json(self) {
 }
 
 ///|
-pub impl Show for MhxError with output(self, logger) {
+pub impl Show for MhxError with fn output(self, logger) {
   logger.write_string(self.to_json().stringify())
 }
 
@@ -231,7 +231,7 @@ priv struct ErrorHandlerState {
 }
 
 ///|
-let global_error_state : ErrorHandlerState = { handler: default_error_handler }
+let global_error_state : ErrorHandlerState = { handler: default_error_handler, }
 
 ///|
 /// Set the global error handler
@@ -262,7 +262,7 @@ pub fn network_error_for_element(
 
 ///|
 /// Helper to create timeout errors
-pub fn timeout_error(url : String, timeout_ms : Int) -> MhxError {
+pub fn timeout_error(url : String, timeout_ms : Int32) -> MhxError {
   MhxError::TimeoutError(url~, timeout_ms~, source_element=None)
 }
 
@@ -333,7 +333,7 @@ pub fn selector_error(
   selector : String,
   message : String,
   source_element : String?,
-  code? : String = "MHX_SELECTOR_TARGET_NOT_FOUND",
+  code~ : String = "MHX_SELECTOR_TARGET_NOT_FOUND",
 ) -> MhxError {
   MhxError::SelectorError(code~, selector~, message~, source_element~)
 }
@@ -372,7 +372,7 @@ pub(all) enum RecoveryStrategy {
   /// Stop processing completely.
   Abort
   /// Retry the operation (for network errors).
-  Retry(max_attempts~ : Int, delay_ms~ : Int)
+  Retry(max_attempts~ : Int32, delay_ms~ : Int32)
 }
 
 ///|

@@ -24,7 +24,7 @@ pub(all) struct ElementConfig {
 }
 
 ///|
-pub impl Show for ElementConfig with output(self, logger) {
+pub impl Show for ElementConfig with fn output(self, logger) {
   logger.write_string(self.to_json().stringify())
 }
 
@@ -39,7 +39,7 @@ pub(all) enum HttpMethod {
 } derive(Eq)
 
 ///|
-pub impl Show for HttpMethod with output(self, logger) {
+pub impl Show for HttpMethod with fn output(self, logger) {
   logger.write_string(
     match self {
       Get => "Get"
@@ -52,7 +52,7 @@ pub impl Show for HttpMethod with output(self, logger) {
 }
 
 ///|
-pub impl ToJson for HttpMethod with to_json(self) {
+pub impl ToJson for HttpMethod with fn to_json(self) {
   match self {
     Get => "GET".to_json()
     Post => "POST".to_json()
@@ -63,7 +63,7 @@ pub impl ToJson for HttpMethod with to_json(self) {
 }
 
 ///|
-pub impl ToJson for ElementConfig with to_json(self) {
+pub impl ToJson for ElementConfig with fn to_json(self) {
   {
     "triggers": self.triggers.to_json(),
     "method": self.http_method.to_json(),
@@ -104,24 +104,24 @@ pub fn ElementConfig::default() -> ElementConfig {
 /// The global configuration cache
 /// Maps element IDs to their parsed configurations
 struct ConfigCache {
-  configs : Map[Int, ElementConfig]
-  mut next_id : Int
+  configs : Map[Int32, ElementConfig]
+  mut next_id : Int32
   /// Maps element -> id (stored as element index in a side channel)
-  element_ids : Map[Int, Int]
+  element_ids : Map[Int32, Int32]
 }
 
 ///|
 /// Create a new config cache
 pub fn ConfigCache::new() -> ConfigCache {
-  { configs: {}, next_id: 1, element_ids: {} }
+  { configs: {}, next_id: 1, element_ids: {}, }
 }
 
 ///|
 /// Get or create an ID for an element (using JS-side element tracking)
 pub fn ConfigCache::get_element_id(
   self : ConfigCache,
-  element_hash : Int,
-) -> Int {
+  element_hash : Int32,
+) -> Int32 {
   match self.element_ids.get(element_hash) {
     Some(id) => id
     Option::None => {
@@ -137,7 +137,7 @@ pub fn ConfigCache::get_element_id(
 /// Store a configuration for an element
 pub fn ConfigCache::set(
   self : ConfigCache,
-  element_id : Int,
+  element_id : Int32,
   config : ElementConfig,
 ) -> Unit {
   self.configs[element_id] = config
@@ -145,25 +145,28 @@ pub fn ConfigCache::set(
 
 ///|
 /// Get a configuration for an element
-pub fn ConfigCache::get(self : ConfigCache, element_id : Int) -> ElementConfig? {
+pub fn ConfigCache::get(
+  self : ConfigCache,
+  element_id : Int32,
+) -> ElementConfig? {
   self.configs.get(element_id)
 }
 
 ///|
 /// Remove a configuration for an element
-pub fn ConfigCache::remove(self : ConfigCache, element_id : Int) -> Unit {
+pub fn ConfigCache::remove(self : ConfigCache, element_id : Int32) -> Unit {
   self.configs.remove(element_id)
 }
 
 ///|
 /// Check if we have a configuration for an element
-pub fn ConfigCache::has(self : ConfigCache, element_id : Int) -> Bool {
+pub fn ConfigCache::has(self : ConfigCache, element_id : Int32) -> Bool {
   self.configs.contains(element_id)
 }
 
 ///|
 /// Get the number of cached configurations
-pub fn ConfigCache::length(self : ConfigCache) -> Int {
+pub fn ConfigCache::length(self : ConfigCache) -> Int32 {
   self.configs.length()
 }
 

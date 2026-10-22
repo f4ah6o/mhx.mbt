@@ -32,7 +32,7 @@ pub(all) enum FetchResult {
 
 ///|
 /// Show implementation for FetchResult
-pub impl Show for FetchResult with output(self, logger) {
+pub impl Show for FetchResult with fn output(self, logger) {
   match self {
     Success(resp) =>
       logger.write_string("Success(status=" + resp.status().to_string() + ")")
@@ -44,19 +44,19 @@ pub impl Show for FetchResult with output(self, logger) {
 ///|
 /// Internal callback registry for managing async responses
 priv struct CallbackRegistry {
-  mut next_id : Int
-  callbacks : Map[Int, (FetchCallback, FetchErrorCallback)]
+  mut next_id : Int32
+  callbacks : Map[Int32, (FetchCallback, FetchErrorCallback)]
 }
 
 ///|
-let callback_registry : CallbackRegistry = { next_id: 1, callbacks: {} }
+let callback_registry : CallbackRegistry = { next_id: 1, callbacks: {}, }
 
 ///|
 /// Register a callback pair and return the ID
 fn register_callbacks(
   on_success : FetchCallback,
   on_error : FetchErrorCallback,
-) -> Int {
+) -> Int32 {
   let id = callback_registry.next_id
   callback_registry.next_id += 1
   callback_registry.callbacks[id] = (on_success, on_error)
@@ -65,7 +65,7 @@ fn register_callbacks(
 
 ///|
 /// Called from JS when fetch succeeds
-pub fn on_fetch_success(callback_id : Int, response_text : String) -> Unit {
+pub fn on_fetch_success(callback_id : Int32, response_text : String) -> Unit {
   match callback_registry.callbacks.get(callback_id) {
     Some((success_cb, _)) => {
       let response = Response::from_text(response_text)
@@ -90,7 +90,7 @@ pub fn parse_error_type(error_type : String) -> FetchErrorType {
 ///|
 /// Called from JS when fetch fails
 pub fn on_fetch_error(
-  callback_id : Int,
+  callback_id : Int32,
   error_type : String,
   error_message : String,
 ) -> Unit {
@@ -112,7 +112,7 @@ pub fn fetch_async(
   options : RequestOptions,
   on_success : (Response) -> Unit,
   on_error : (FetchErrorType, String) -> Unit,
-) -> Int {
+) -> Int32 {
   let callback_id = register_callbacks({ on_success, }, { on_error, })
   if callback_id < 0 {
     on_fetch_success(callback_id, "")
@@ -130,19 +130,19 @@ pub fn fetch_async(
 fn initiate_fetch_ffi(
   url : String,
   options_json : String,
-  callback_id : Int,
+  callback_id : Int32,
 ) -> Unit = "mhx_ffi" "initiate_fetch"
 
 ///|
 /// Cancel a pending fetch request
-pub fn cancel_fetch(callback_id : Int) -> Unit {
+pub fn cancel_fetch(callback_id : Int32) -> Unit {
   callback_registry.callbacks.remove(callback_id)
   cancel_fetch_ffi(callback_id)
 }
 
 ///|
 /// FFI function to cancel fetch
-fn cancel_fetch_ffi(callback_id : Int) -> Unit = "mhx_ffi" "cancel_fetch"
+fn cancel_fetch_ffi(callback_id : Int32) -> Unit = "mhx_ffi" "cancel_fetch"
 
 ///|
 /// Create a Response from text (placeholder until full response handling)
@@ -162,7 +162,7 @@ pub struct FetchTask {
   /// Request options
   options : RequestOptions
   /// Internal callback ID (0 if not started)
-  mut callback_id : Int
+  mut callback_id : Int32
   /// Result storage
   mut result : FetchResult
 }
@@ -170,7 +170,7 @@ pub struct FetchTask {
 ///|
 /// Create a new fetch task
 pub fn FetchTask::new(url : String, options : RequestOptions) -> FetchTask {
-  { url, options, callback_id: 0, result: FetchResult::Pending }
+  { url, options, callback_id: 0, result: FetchResult::Pending, }
 }
 
 ///|

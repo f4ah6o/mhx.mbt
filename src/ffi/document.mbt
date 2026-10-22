@@ -51,14 +51,14 @@ pub fn Document::query_selector_exists(
 pub fn Document::query_selector_all_count(
   self : Document,
   selector : String,
-) -> Int = "mhx_ffi" "document_query_selector_all_count"
+) -> Int32 = "mhx_ffi" "document_query_selector_all_count"
 
 ///|
 /// Get element at index from querySelectorAll result
 pub fn Document::query_selector_all_at(
   self : Document,
   selector : String,
-  index : Int,
+  index : Int32,
 ) -> Element = "mhx_ffi" "document_query_selector_all_at"
 
 ///|
@@ -146,32 +146,32 @@ pub fn Window::history_forward(self : Window) -> Unit = "mhx_ffi" "window_histor
 pub fn Window::set_timeout(
   self : Window,
   handler : () -> Unit,
-  delay_ms : Int,
-) -> Int = "mhx_ffi" "window_set_timeout"
+  delay_ms : Int32,
+) -> Int32 = "mhx_ffi" "window_set_timeout"
 
 ///|
 /// Cancel a timeout
-pub fn Window::clear_timeout(self : Window, id : Int) -> Unit = "mhx_ffi" "window_clear_timeout"
+pub fn Window::clear_timeout(self : Window, id : Int32) -> Unit = "mhx_ffi" "window_clear_timeout"
 
 ///|
 /// Schedule a repeating callback (setInterval)
 pub fn Window::set_interval(
   self : Window,
   handler : () -> Unit,
-  interval_ms : Int,
-) -> Int = "mhx_ffi" "window_set_interval"
+  interval_ms : Int32,
+) -> Int32 = "mhx_ffi" "window_set_interval"
 
 ///|
 /// Cancel an interval
-pub fn Window::clear_interval(self : Window, id : Int) -> Unit = "mhx_ffi" "window_clear_interval"
+pub fn Window::clear_interval(self : Window, id : Int32) -> Unit = "mhx_ffi" "window_clear_interval"
 
 ///|
 /// Request animation frame
 pub fn Window::request_animation_frame(
   self : Window,
   handler : (Double) -> Unit,
-) -> Int = "mhx_ffi" "window_request_animation_frame"
+) -> Int32 = "mhx_ffi" "window_request_animation_frame"
 
 ///|
 /// Cancel animation frame
-pub fn Window::cancel_animation_frame(self : Window, id : Int) -> Unit = "mhx_ffi" "window_cancel_animation_frame"
+pub fn Window::cancel_animation_frame(self : Window, id : Int32) -> Unit = "mhx_ffi" "window_cancel_animation_frame"

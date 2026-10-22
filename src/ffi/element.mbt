@@ -146,11 +146,11 @@ pub fn Element::is_null(self : Element) -> Bool = "mhx_ffi" "element_is_null"
 
 ///|
 /// Get the number of children
-pub fn Element::child_count(self : Element) -> Int = "mhx_ffi" "element_child_count"
+pub fn Element::child_count(self : Element) -> Int32 = "mhx_ffi" "element_child_count"
 
 ///|
 /// Get child element at index
-pub fn Element::child_at(self : Element, index : Int) -> Element = "mhx_ffi" "element_child_at"
+pub fn Element::child_at(self : Element, index : Int32) -> Element = "mhx_ffi" "element_child_at"
 
 ///|
 /// Get the value (for form elements)

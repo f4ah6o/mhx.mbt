@@ -102,7 +102,7 @@ fn find_adjacent_sibling(
 
 ///|
 /// Find the index of a child element within its parent.
-fn find_child_index(parent : @ffi.Element, child : @ffi.Element) -> Int {
+fn find_child_index(parent : @ffi.Element, child : @ffi.Element) -> Int32 {
   let count = parent.child_count()
   for i = 0; i < count; i = i + 1 {
     let candidate = parent.child_at(i)

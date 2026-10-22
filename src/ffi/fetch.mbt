@@ -39,7 +39,7 @@ pub fn js_fetch(url : String, options : String) -> JsPromise = "mhx_ffi" "fetch"
 
 ///|
 /// Get response status code
-pub fn JsResponse::status(self : JsResponse) -> Int = "mhx_ffi" "response_status"
+pub fn JsResponse::status(self : JsResponse) -> Int32 = "mhx_ffi" "response_status"
 
 ///|
 /// Get response status text

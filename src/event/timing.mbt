@@ -6,7 +6,7 @@
 /// State for a single timing instance
 pub struct TimingState {
   /// Pending timeout ID for delay/debounce (0 if none)
-  mut pending_timeout : Int
+  mut pending_timeout : Int32
   /// Last execution time for throttle (0 if never)
   mut last_execution : Double
   /// Whether currently throttled
@@ -48,15 +48,15 @@ pub struct TimingManager {
 ///|
 /// Create a new timing manager
 pub fn TimingManager::new() -> TimingManager {
-  { states: {} }
+  { states: {}, }
 }
 
 ///|
 /// Get or create timing state for an element/trigger combination
 pub fn TimingManager::get_state(
   self : TimingManager,
-  element_id : Int,
-  trigger_index : Int,
+  element_id : Int32,
+  trigger_index : Int32,
 ) -> TimingState {
   let key = element_id.to_string() + "_" + trigger_index.to_string()
   match self.states.get(key) {
@@ -73,7 +73,7 @@ pub fn TimingManager::get_state(
 /// Remove timing state for an element
 pub fn TimingManager::remove_element(
   self : TimingManager,
-  element_id : Int,
+  element_id : Int32,
 ) -> Unit {
   // Remove all states for this element (any trigger index)
   let prefix = element_id.to_string() + "_"
@@ -94,7 +94,7 @@ pub fn TimingManager::remove_element(
 /// Schedules action to run after delay_ms milliseconds
 pub fn apply_delay(
   state : TimingState,
-  delay_ms : Int,
+  delay_ms : Int32,
   action : () -> Unit,
 ) -> Unit {
   // Cancel any pending timeout
@@ -118,7 +118,7 @@ pub fn apply_delay(
 /// Ensures action runs at most once per throttle_ms milliseconds
 pub fn apply_throttle(
   state : TimingState,
-  throttle_ms : Int,
+  throttle_ms : Int32,
   action : () -> Unit,
 ) -> Unit {
   let now = current_time()
@@ -159,7 +159,7 @@ pub fn apply_throttle(
 /// Waits for debounce_ms of inactivity before executing
 pub fn apply_debounce(
   state : TimingState,
-  debounce_ms : Int,
+  debounce_ms : Int32,
   action : () -> Unit,
 ) -> Unit {
   // Cancel any pending timeout

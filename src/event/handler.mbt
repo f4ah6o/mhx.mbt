@@ -84,7 +84,7 @@ pub fn parse_element_config(
   } else {
     None
   }
-  { triggers, http_method, url, swap, target, sync, vals, processed: true }
+  { triggers, http_method, url, swap, target, sync, vals, processed: true, }
 }
 
 ///|

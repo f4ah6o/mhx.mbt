@@ -10,9 +10,9 @@ type SyncStrategy = @sync.SyncStrategy
 /// A request task with metadata
 pub(all) struct RequestTask {
   /// Unique ID for this task
-  id : Int
+  id : Int32
   /// Element ID that triggered the request
-  element_id : Int
+  element_id : Int32
   /// URL to request
   url : String
   /// Request options
@@ -20,7 +20,7 @@ pub(all) struct RequestTask {
   /// Whether the task was cancelled before completion
   mut cancelled : Bool
   /// Callback identifier for the active JS fetch bridge
-  mut callback_id : Int
+  mut callback_id : Int32
   /// Sync strategy
   sync_strategy : SyncStrategy
 }
@@ -28,8 +28,8 @@ pub(all) struct RequestTask {
 ///|
 /// Create a new request task
 pub fn RequestTask::new(
-  id : Int,
-  element_id : Int,
+  id : Int32,
+  element_id : Int32,
   url : String,
   options : RequestOptions,
   sync_strategy : SyncStrategy,
@@ -49,7 +49,7 @@ pub fn RequestTask::new(
 /// Attach the JS fetch callback identifier once execution starts.
 pub fn RequestTask::attach_callback(
   self : RequestTask,
-  callback_id : Int,
+  callback_id : Int32,
 ) -> Unit {
   self.callback_id = callback_id
 }
@@ -93,7 +93,7 @@ struct RequestQueue {
 ///|
 /// Create a new request queue
 fn RequestQueue::new() -> RequestQueue {
-  { current: Option::None, pending: [] }
+  { current: Option::None, pending: [], }
 }
 
 ///|
@@ -107,22 +107,22 @@ fn RequestQueue::is_busy(self : RequestQueue) -> Bool {
 /// Implements hx-sync behavior
 pub struct RequestManager {
   /// Request queues by element ID
-  queues : Map[Int, RequestQueue]
+  queues : Map[Int32, RequestQueue]
   /// Next task ID
-  mut next_id : Int
+  mut next_id : Int32
 }
 
 ///|
 /// Create a new request manager
 pub fn RequestManager::new() -> RequestManager {
-  { queues: {}, next_id: 1 }
+  { queues: {}, next_id: 1, }
 }
 
 ///|
 /// Get or create a queue for an element
 fn RequestManager::get_queue(
   self : RequestManager,
-  element_id : Int,
+  element_id : Int32,
 ) -> RequestQueue {
   match self.queues.get(element_id) {
     Some(queue) => queue
@@ -150,7 +150,7 @@ pub(all) enum ScheduleResult {
 /// Returns the task to execute or None if dropped/queued
 pub fn RequestManager::schedule(
   self : RequestManager,
-  element_id : Int,
+  element_id : Int32,
   url : String,
   options : RequestOptions,
   strategy : SyncStrategy,
@@ -221,8 +221,8 @@ pub fn RequestManager::schedule(
 /// Mark a request as completed and get next queued request
 pub fn RequestManager::complete(
   self : RequestManager,
-  element_id : Int,
-  task_id : Int,
+  element_id : Int32,
+  task_id : Int32,
 ) -> RequestTask? {
   match self.queues.get(element_id) {
     Some(queue) =>
@@ -251,7 +251,7 @@ pub fn RequestManager::complete(
 /// Cancel all requests for an element
 pub fn RequestManager::cancel_all(
   self : RequestManager,
-  element_id : Int,
+  element_id : Int32,
 ) -> Unit {
   match self.queues.get(element_id) {
     Some(queue) => {
@@ -273,8 +273,8 @@ pub fn RequestManager::cancel_all(
 /// Get count of pending requests for an element
 pub fn RequestManager::pending_count(
   self : RequestManager,
-  element_id : Int,
-) -> Int {
+  element_id : Int32,
+) -> Int32 {
   match self.queues.get(element_id) {
     Some(queue) => {
       let current_count = if queue.current is Some(_) { 1 } else { 0 }

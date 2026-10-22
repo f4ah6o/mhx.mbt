@@ -67,11 +67,11 @@ pub fn Event::as_mouse_event(self : Event) -> MouseEvent = "mhx_ffi" "event_as_m
 
 ///|
 /// Get client X coordinate
-pub fn MouseEvent::client_x(self : MouseEvent) -> Int = "mhx_ffi" "mouse_event_client_x"
+pub fn MouseEvent::client_x(self : MouseEvent) -> Int32 = "mhx_ffi" "mouse_event_client_x"
 
 ///|
 /// Get client Y coordinate
-pub fn MouseEvent::client_y(self : MouseEvent) -> Int = "mhx_ffi" "mouse_event_client_y"
+pub fn MouseEvent::client_y(self : MouseEvent) -> Int32 = "mhx_ffi" "mouse_event_client_y"
 
 ///|
 /// Check if Ctrl key was pressed
@@ -91,7 +91,7 @@ pub fn MouseEvent::meta_key(self : MouseEvent) -> Bool = "mhx_ffi" "mouse_event_
 
 ///|
 /// Get the button that was pressed (0=left, 1=middle, 2=right)
-pub fn MouseEvent::button(self : MouseEvent) -> Int = "mhx_ffi" "mouse_event_button"
+pub fn MouseEvent::button(self : MouseEvent) -> Int32 = "mhx_ffi" "mouse_event_button"
 
 ///|
 /// Opaque type for KeyboardEvent (extends Event)

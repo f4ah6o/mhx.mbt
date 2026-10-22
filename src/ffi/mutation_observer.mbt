@@ -20,7 +20,7 @@ pub type Node
 ///|
 /// Create a new MutationObserver with a callback ID
 /// The callback will be invoked via a dispatch mechanism
-pub fn MutationObserver::new_ffi(callback_id : Int) -> MutationObserver = "mhx_ffi" "mutation_observer_new"
+pub fn MutationObserver::new_ffi(callback_id : Int32) -> MutationObserver = "mhx_ffi" "mutation_observer_new"
 
 ///|
 /// Start observing a target element
@@ -39,13 +39,13 @@ pub fn MutationObserver::disconnect(self : MutationObserver) -> Unit = "mhx_ffi"
 
 ///|
 /// Get the number of pending mutation records
-pub fn MutationObserver::records_count(self : MutationObserver) -> Int = "mhx_ffi" "mutation_observer_records_count"
+pub fn MutationObserver::records_count(self : MutationObserver) -> Int32 = "mhx_ffi" "mutation_observer_records_count"
 
 ///|
 /// Get mutation record at index
 pub fn MutationObserver::record_at(
   self : MutationObserver,
-  index : Int,
+  index : Int32,
 ) -> MutationRecord = "mhx_ffi" "mutation_observer_record_at"
 
 ///|
@@ -62,24 +62,24 @@ pub fn MutationRecord::target(self : MutationRecord) -> Node = "mhx_ffi" "mutati
 
 ///|
 /// Get number of added nodes (for childList mutations)
-pub fn MutationRecord::added_nodes_count(self : MutationRecord) -> Int = "mhx_ffi" "mutation_record_added_nodes_count"
+pub fn MutationRecord::added_nodes_count(self : MutationRecord) -> Int32 = "mhx_ffi" "mutation_record_added_nodes_count"
 
 ///|
 /// Get added node at index
 pub fn MutationRecord::added_node_at(
   self : MutationRecord,
-  index : Int,
+  index : Int32,
 ) -> Node = "mhx_ffi" "mutation_record_added_node_at"
 
 ///|
 /// Get number of removed nodes (for childList mutations)
-pub fn MutationRecord::removed_nodes_count(self : MutationRecord) -> Int = "mhx_ffi" "mutation_record_removed_nodes_count"
+pub fn MutationRecord::removed_nodes_count(self : MutationRecord) -> Int32 = "mhx_ffi" "mutation_record_removed_nodes_count"
 
 ///|
 /// Get removed node at index
 pub fn MutationRecord::removed_node_at(
   self : MutationRecord,
-  index : Int,
+  index : Int32,
 ) -> Node = "mhx_ffi" "mutation_record_removed_node_at"
 
 ///|
@@ -108,7 +108,7 @@ pub fn Node::as_element(self : Node) -> Element = "mhx_ffi" "node_as_element"
 
 ///|
 /// Get the node type (1=Element, 3=Text, etc.)
-pub fn Node::node_type(self : Node) -> Int = "mhx_ffi" "node_node_type"
+pub fn Node::node_type(self : Node) -> Int32 = "mhx_ffi" "node_node_type"
 
 ///|
 /// Get the node name

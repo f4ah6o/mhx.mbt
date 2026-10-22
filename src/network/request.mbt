@@ -18,7 +18,7 @@ pub(all) struct RequestOptions {
 ///|
 /// Create default GET request options
 pub fn RequestOptions::default() -> RequestOptions {
-  { http_method: "GET", headers: {}, body: Option::None, signal: Option::None }
+  { http_method: "GET", headers: {}, body: Option::None, signal: Option::None, }
 }
 
 ///|
@@ -55,7 +55,7 @@ pub fn RequestOptions::with_signal(
   self : RequestOptions,
   signal : @ffi.AbortSignal,
 ) -> RequestOptions {
-  { ..self, signal: Some(signal) }
+  { ..self, signal: Some(signal), }
 }
 
 ///|
@@ -125,18 +125,18 @@ pub(all) struct Response {
 ///|
 /// Create a Response from raw JS response and body
 pub fn Response::new(raw : @ffi.JsResponse, body : String) -> Response {
-  { raw, body }
+  { raw, body, }
 }
 
 ///|
 /// Create a Response from body text with a dummy raw response
 pub fn Response::from_text(text : String) -> Response {
-  { raw: create_dummy_response_ffi(), body: text }
+  { raw: create_dummy_response_ffi(), body: text, }
 }
 
 ///|
 /// Get response status code
-pub fn Response::status(self : Response) -> Int {
+pub fn Response::status(self : Response) -> Int32 {
   self.raw.status()
 }
 
